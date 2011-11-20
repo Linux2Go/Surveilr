@@ -38,6 +38,7 @@ from webob.exc import HTTPNotFound
 from surveilr import models
 from surveilr import utils
 
+
 class ServiceController(object):
     """Routes style controller for actions related to services"""
 
@@ -49,7 +50,7 @@ class ServiceController(object):
         data = json.loads(req.body)
         service = models.Service(**data)
         service.save()
-        response = {'id':service.key}
+        response = {'id': service.key}
         return Response(json.dumps(response))
 
     def show(self, req, id):
@@ -95,6 +96,7 @@ class MetricController(object):
             retval += [{'metrics': x.metrics, 'timestamp': x.timestamp}]
         return Response(json.dumps(retval))
 
+
 class SurveilrApplication(object):
     """The core Surveilr Monitoring WSGI application"""
     controllers = {}
@@ -126,9 +128,11 @@ class SurveilrApplication(object):
 
 application = SurveilrApplication()
 
+
 def main():
     socket = eventlet.listen(('', 9877))
     eventlet.wsgi.server(socket, application)
 
-if __name__ == '__main__': # pragma: nocover
+
+if __name__ == '__main__':  # pragma: nocover
     main()
