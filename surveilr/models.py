@@ -22,6 +22,7 @@
 from riakalchemy import RiakObject
 from riakalchemy.types import Integer, String, Dict, RelatedObjects
 
+
 class Service(RiakObject):
     """A service that is referenced by many LogEntry's
 
@@ -34,6 +35,7 @@ class Service(RiakObject):
 
     name = String()
     most_recent_log_entry = RelatedObjects()
+
 
 class LogEntry(RiakObject):
     """A log entry holding one or more metrics

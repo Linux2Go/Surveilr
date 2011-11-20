@@ -20,6 +20,7 @@
     Utility functions
 """
 
+
 def truncate(number, rounding_factor):
     """Truncate to nearest arbitrary multiple
 

@@ -27,7 +27,7 @@ from webob import Request
 
 from surveilr.api import server
 from surveilr.api.server import application
-from surveilr.api.server import main as server_main
+
 
 class APIServerTests(unittest.TestCase):
     def setUp(self):
@@ -57,7 +57,9 @@ class APIServerTests(unittest.TestCase):
         self.assertEquals(resp.status_int, 404)
 
     def test_create_retrieve_metric(self):
-        req = Request.blank('/services', method='POST', POST='{"name": "this_or_the_other"}')
+        req = Request.blank('/services',
+                            method='POST',
+                            POST='{"name": "this_or_the_other"}')
         resp = application(req)
         self.assertEquals(resp.status_int, 200)
 
@@ -85,6 +87,7 @@ class APIServerTests(unittest.TestCase):
             socket_sentinel = mock.sentinel.return_value
             eventlet.listen.return_value = socket_sentinel
             server.main()
-            
+
             eventlet.listen.assert_called_with(('', 9877))
-            eventlet.wsgi.server.assert_called_with(socket_sentinel, application)
+            eventlet.wsgi.server.assert_called_with(socket_sentinel,
+                                                    application)
