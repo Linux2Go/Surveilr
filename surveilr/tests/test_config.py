@@ -26,6 +26,7 @@ import mock
 import os.path
 import unittest
 
+
 class ConfigTest(unittest.TestCase):
     def config_files(self):
         return []
@@ -78,6 +79,7 @@ class ConfigCoercionTests(ConfigTest):
         self.assertEquals(get_bool('test_bool', 'off'), False)
 
         self.assertRaises(ValueError, get_bool, 'test_bool', 'nonsense')
+
 
 class ConfigPrecedenceTests(ConfigTest):
     def config_files(self):
