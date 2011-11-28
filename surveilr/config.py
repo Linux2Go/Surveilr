@@ -25,11 +25,14 @@ import os.path
 
 cfg = None
 
+
 def defaults_file():
     return os.path.join(os.path.dirname(__file__), 'defaults.cfg')
 
+
 def config_files():
     return ['/etc/surveilr/surveilr.cfg']
+
 
 def load_default_config():
     global cfg
@@ -37,13 +40,17 @@ def load_default_config():
     cfg.readfp(open(defaults_file(), 'r'))
     cfg.read(config_files())
 
+
 def get_str(section, option):
     return cfg.get(section, option)
+
 
 def get_int(section, option):
     return cfg.getint(section, option)
 
+
 def get_bool(section, option):
     return cfg.getboolean(section, option)
+
 
 load_default_config()
