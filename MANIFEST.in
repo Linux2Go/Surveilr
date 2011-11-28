@@ -1,0 +1,2 @@
+include surveilr/*.cfg
+include surveilr/tests/*.cfg
