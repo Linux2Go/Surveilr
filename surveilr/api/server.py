@@ -43,7 +43,7 @@ class UserController(object):
     """Routes style controller for actions related to users"""
 
     def create(self, req):
-        """Called for POST requests to /services
+        """Called for POST requests to /users
 
         Creates the user, returns a JSON object with the ID assigned
         to the user"""
