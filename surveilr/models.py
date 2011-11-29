@@ -37,6 +37,11 @@ class Service(RiakObject):
     most_recent_log_entry = RelatedObjects()
 
 
+class User(RiakObject):
+    """A user of the service"""
+    bucket_name = 'users'
+
+
 class LogEntry(RiakObject):
     """A log entry holding one or more metrics
 

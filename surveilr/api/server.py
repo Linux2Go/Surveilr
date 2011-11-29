@@ -39,6 +39,38 @@ from surveilr import models
 from surveilr import utils
 
 
+class UserController(object):
+    """Routes style controller for actions related to users"""
+
+    def create(self, req):
+        """Called for POST requests to /users
+
+        Creates the user, returns a JSON object with the ID assigned
+        to the user"""
+        data = json.loads(req.body)
+        user = models.User(**data)
+        user.save()
+        response = {'id': user.key}
+        return Response(json.dumps(response))
+
+    def show(self, req, id):
+        """Called for GET requests to /users/{id}
+
+        Returns information for the given service"""
+        try:
+            user = models.User.get(id)
+            return Response({'id': user.key})
+        except riakalchemy.NoSuchObjectError:
+            return HTTPNotFound()
+
+    def delete(self, req, id):
+        """Called for DELETE requests to /users/{id}
+
+        Delete the given user"""
+        models.User.get(id).delete()
+        return Response('')
+
+
 class ServiceController(object):
     """Routes style controller for actions related to services"""
 
@@ -105,6 +137,7 @@ class SurveilrApplication(object):
     map.resource("metric", "metrics", controller='MetricController',
                  path_prefix='/services/{service_name}')
     map.resource("service", "services", controller='ServiceController')
+    map.resource("user", "users", controller='UserController')
 
     @wsgify
     def __call__(self, req):

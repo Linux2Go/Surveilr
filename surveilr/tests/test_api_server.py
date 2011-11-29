@@ -34,6 +34,28 @@ class APIServerTests(unittest.TestCase):
         import riakalchemy
         riakalchemy.connect()
 
+    def test_create_retrieve_user(self):
+        """Create, retrieve, delete, attempt to retrieve again"""
+        req = Request.blank('/users',
+                            method='POST',
+                            POST=json.dumps({}))
+        resp = application(req)
+        self.assertEquals(resp.status_int, 200)
+
+        service_id = json.loads(resp.body)['id']
+
+        req = Request.blank('/users/%s' % service_id)
+        resp = application(req)
+        self.assertEquals(resp.status_int, 200)
+
+        req = Request.blank('/users/%s' % service_id, method='DELETE')
+        resp = application(req)
+        self.assertEquals(resp.status_int, 200)
+
+        req = Request.blank('/users/%s' % service_id)
+        resp = application(req)
+        self.assertEquals(resp.status_int, 404)
+
     def test_create_retrieve_service(self):
         """Create, retrieve, delete, attempt to retrieve again"""
         req = Request.blank('/services',
