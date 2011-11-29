@@ -31,6 +31,7 @@ setup(
     packages=['surveilr'],
     install_requires=['riakalchemy'],
     test_suite='nose.collector',
+    install_package_data=True,
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Environment :: Console',

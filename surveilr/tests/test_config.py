@@ -21,30 +21,15 @@
 """
 
 from surveilr import config
+from surveilr import tests
 
-import mock
 import os.path
-import unittest
 
 
-class ConfigTest(unittest.TestCase):
-    def config_files(self):
-        return []
-
+class ConfigTest(tests.TestCase):
     def defaults_file(self):
         return os.path.join(os.path.dirname(__file__),
                             'test_config_defaults.cfg')
-
-    def setUp(self):
-        with mock.patch('surveilr.config.defaults_file') as defaults_file:
-            with mock.patch('surveilr.config.config_files') as config_files:
-                config_files.return_value = self.config_files()
-                defaults_file.return_value = self.defaults_file()
-
-                config.load_default_config()
-
-    def tearDown(self):
-        config.load_default_config()
 
 
 class ConfigCoercionTests(ConfigTest):
