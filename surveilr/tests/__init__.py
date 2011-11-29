@@ -17,3 +17,37 @@
     License along with this program.  If not, see
     <http://www.gnu.org/licenses/>.
 """
+
+import mock
+import os.path
+import unittest
+
+from surveilr import config
+
+class TestCase(unittest.TestCase):
+    def config_files(self):
+        module = self.__module__
+        if not module.startswith('surveilr.tests'):
+            return
+
+        cfg_file = '%s.cfg' % (os.path.join(os.path.dirname(__file__),
+                                            *module.split('.')[2:]),)
+        return [cfg_file]
+
+    def defaults_file(self):
+        return os.path.join(os.path.dirname(__file__),
+                            os.path.pardir, 'defaults.cfg')
+
+    def setUp(self):
+        super(TestCase, self).setUp()
+        with mock.patch('surveilr.config.defaults_file') as defaults_file:
+            with mock.patch('surveilr.config.config_files') as config_files:
+                config_files.return_value = self.config_files()
+                defaults_file.return_value = self.defaults_file()
+
+                config.load_default_config()
+
+    def tearDown(self):
+        config.load_default_config()
+
+
