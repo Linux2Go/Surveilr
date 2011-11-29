@@ -35,6 +35,15 @@ class Service(RiakObject):
 
     name = String()
     most_recent_log_entry = RelatedObjects()
+    user = RelatedObjects(backref=True)
+
+
+class User(RiakObject):
+    """A user of the service"""
+    bucket_name = 'users'
+
+    messaging_driver = String()
+    messaging_address = String()
 
 
 class User(RiakObject):
