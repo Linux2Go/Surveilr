@@ -25,6 +25,8 @@ import unittest
 
 from surveilr import drivers
 from surveilr import messaging
+from surveilr import tests
+from surveilr.messaging import sms
 from surveilr.tests import utils
 
 
@@ -44,25 +46,30 @@ class FakeMessagingDriverTests(unittest.TestCase):
         self.driver.send(user, info)
 
 
-class SMSMessagingDriverTests(unittest.TestCase):
-    def setUp(self):
-        self.saved_client = drivers.get_driver('messaging', 'sms').client
-        self.driver = drivers.get_driver('messaging', 'sms')
-        self.driver.client = mock.Mock()
+class SMSMessagingDriverTests(tests.TestCase):
+    @mock.patch('surveilr.messaging.sms.Clickatell')
+    def test_instantiate_client(self, clickatell):
+        self.driver = sms.SMSMessaging()
+        clickatell.assert_called_with('testuser', 'testpassword', 'testapiid',
+                                      sendmsg_defaults={'callback': 1,
+                                                        'req_feat': 8240,
+                                                        'deliv_ack': 1,
+                                                        'msg_type': 'SMS_TEXT'})
 
     def test_send(self):
+        driver = sms.SMSMessaging()
+        driver.client = mock.Mock()
+
         msisdn = '12345678'
         user = utils.get_test_user(messaging_driver='sms',
                                    messaging_address=msisdn)
         info = utils.get_test_notification_info()
 
-        self.driver.send(user, info)
+        driver.send(user, info)
 
-        self.driver.client.sendmsg.assert_called_with(recipients=[msisdn],
-                                                      text=str(info))
-
-    def tearDown(self):
-        self.driver.client = self.saved_client
+        driver.client.sendmsg.assert_called_with(recipients=[msisdn],
+                                                 sender='testsender',
+                                                 text=str(info))
 
 
 class MessagingAPITests(unittest.TestCase):

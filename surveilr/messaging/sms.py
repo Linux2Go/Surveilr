@@ -43,7 +43,9 @@ class SMSMessaging(object):
                               })
 
     def send(self, recipient, info):
+        sender = config.get_str('sms', 'sender')
         self.client.sendmsg(recipients=[recipient.messaging_address],
+                            sender=sender,
                             text=str(info))
 
 
