@@ -126,13 +126,14 @@ class APIServerTests(unittest.TestCase):
         resp = application(req)
         self.assertEquals(resp.status_int, 404)
 
-    def test_main(self):
-        with mock.patch('surveilr.api.server.eventlet',
-                        spec=['listen', 'wsgi']) as eventlet:
-            socket_sentinel = mock.sentinel.return_value
-            eventlet.listen.return_value = socket_sentinel
-            server.main()
+    @mock.patch('surveilr.api.server.eventlet', spec=['listen', 'wsgi'])
+    @mock.patch('surveilr.api.server.riakalchemy', spec=['connect'])
+    def test_main(self, riakalchemy, eventlet):
+        socket_sentinel = mock.sentinel.return_value
+        eventlet.listen.return_value = socket_sentinel
+        server.main()
 
-            eventlet.listen.assert_called_with(('', 9877))
-            eventlet.wsgi.server.assert_called_with(socket_sentinel,
-                                                    application)
+        riakalchemy.connect.assert_called_with(host='127.0.0.1', port=8098)
+        eventlet.listen.assert_called_with(('', 9877))
+        eventlet.wsgi.server.assert_called_with(socket_sentinel,
+                                                application)
