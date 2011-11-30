@@ -46,11 +46,6 @@ class User(RiakObject):
     messaging_address = String()
 
 
-class User(RiakObject):
-    """A user of the service"""
-    bucket_name = 'users'
-
-
 class LogEntry(RiakObject):
     """A log entry holding one or more metrics
 
