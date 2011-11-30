@@ -38,7 +38,8 @@ class APIServerTests(unittest.TestCase):
         """Create, retrieve, delete, attempt to retrieve again"""
         req = Request.blank('/users',
                             method='POST',
-                            POST=json.dumps({}))
+                            POST=json.dumps({'messaging_driver': 'fake',
+                                             'messaging_address': 'foo'}))
         resp = application(req)
         self.assertEquals(resp.status_int, 200)
 
@@ -47,6 +48,11 @@ class APIServerTests(unittest.TestCase):
         req = Request.blank('/users/%s' % service_id)
         resp = application(req)
         self.assertEquals(resp.status_int, 200)
+
+        print resp.body, type(resp.body)
+        user = json.loads(resp.body)
+        self.assertEquals(user['messaging_driver'], 'fake')
+        self.assertEquals(user['messaging_address'], 'foo')
 
         req = Request.blank('/users/%s' % service_id, method='DELETE')
         resp = application(req)
