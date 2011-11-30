@@ -50,11 +50,13 @@ class SMSMessagingDriverTests(tests.TestCase):
     @mock.patch('surveilr.messaging.sms.Clickatell')
     def test_instantiate_client(self, clickatell):
         self.driver = sms.SMSMessaging()
+
+        sendmsg_defaults = {'callback': 1,
+                            'req_feat': 8240,
+                            'deliv_ack': 1,
+                            'msg_type': 'SMS_TEXT'}
         clickatell.assert_called_with('testuser', 'testpassword', 'testapiid',
-                                      sendmsg_defaults={'callback': 1,
-                                                        'req_feat': 8240,
-                                                        'deliv_ack': 1,
-                                                        'msg_type': 'SMS_TEXT'})
+                                      sendmsg_defaults=sendmsg_defaults)
 
     def test_send(self):
         driver = sms.SMSMessaging()

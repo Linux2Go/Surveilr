@@ -76,7 +76,7 @@ class UserController(object):
             user = models.User.get(id)
             resp_dict = {'id': user.key,
                          'messaging_driver': user.messaging_driver,
-                         'messaging_address': user.messaging_address }
+                         'messaging_address': user.messaging_address}
             return Response(json.dumps(resp_dict))
         except riakalchemy.NoSuchObjectError:
             return HTTPNotFound()
