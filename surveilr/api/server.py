@@ -35,8 +35,23 @@ from webob import Response
 from webob.dec import wsgify
 from webob.exc import HTTPNotFound
 
+from surveilr import messaging
 from surveilr import models
 from surveilr import utils
+
+
+class NotificationController(object):
+    """Routes style controller for notifications"""
+
+    def create(self, req, user_id):
+        """Called for POST requests to /user/{id}/notifications
+
+        Sends a notification to the given user"""
+
+        user = models.User.get(key=user_id)
+        messaging.send(user, json.loads(req.body))
+        response = {}
+        return Response(json.dumps(response))
 
 
 class UserController(object):
@@ -59,7 +74,10 @@ class UserController(object):
         Returns information for the given service"""
         try:
             user = models.User.get(id)
-            return Response({'id': user.key})
+            resp_dict = {'id': user.key,
+                         'messaging_driver': user.messaging_driver,
+                         'messaging_address': user.messaging_address}
+            return Response(json.dumps(resp_dict))
         except riakalchemy.NoSuchObjectError:
             return HTTPNotFound()
 
@@ -138,6 +156,9 @@ class SurveilrApplication(object):
                  path_prefix='/services/{service_name}')
     map.resource("service", "services", controller='ServiceController')
     map.resource("user", "users", controller='UserController')
+    map.resource("notification", "notifications",
+                 controller='NotificationController',
+                 path_prefix='/users/{user_id}')
 
     @wsgify
     def __call__(self, req):

@@ -38,7 +38,8 @@ class APIServerTests(unittest.TestCase):
         """Create, retrieve, delete, attempt to retrieve again"""
         req = Request.blank('/users',
                             method='POST',
-                            POST=json.dumps({}))
+                            POST=json.dumps({'messaging_driver': 'fake',
+                                             'messaging_address': 'foo'}))
         resp = application(req)
         self.assertEquals(resp.status_int, 200)
 
@@ -48,6 +49,11 @@ class APIServerTests(unittest.TestCase):
         resp = application(req)
         self.assertEquals(resp.status_int, 200)
 
+        print resp.body, type(resp.body)
+        user = json.loads(resp.body)
+        self.assertEquals(user['messaging_driver'], 'fake')
+        self.assertEquals(user['messaging_address'], 'foo')
+
         req = Request.blank('/users/%s' % service_id, method='DELETE')
         resp = application(req)
         self.assertEquals(resp.status_int, 200)
@@ -55,6 +61,23 @@ class APIServerTests(unittest.TestCase):
         req = Request.blank('/users/%s' % service_id)
         resp = application(req)
         self.assertEquals(resp.status_int, 404)
+
+    def test_send_notification(self):
+        req = Request.blank('/users',
+                            method='POST',
+                            POST=json.dumps({}))
+        resp = application(req)
+        self.assertEquals(resp.status_int, 200)
+
+        user_id = json.loads(resp.body)['id']
+        req = Request.blank('/users/%s/notifications' % user_id,
+                            method='POST',
+                            POST=json.dumps({
+                                         'timestamp': 13217362355575,
+                                         'metrics': {'duration': 85000,
+                                                     'response_size': 12435}}))
+        resp = application(req)
+        self.assertEquals(resp.status_int, 200)
 
     def test_create_retrieve_service(self):
         """Create, retrieve, delete, attempt to retrieve again"""

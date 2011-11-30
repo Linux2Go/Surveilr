@@ -24,6 +24,7 @@ import unittest
 
 from surveilr import config
 
+
 class TestCase(unittest.TestCase):
     def config_files(self):
         module = self.__module__
@@ -49,5 +50,3 @@ class TestCase(unittest.TestCase):
 
     def tearDown(self):
         config.load_default_config()
-
-
