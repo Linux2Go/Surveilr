@@ -35,6 +35,7 @@ from webob import Response
 from webob.dec import wsgify
 from webob.exc import HTTPNotFound
 
+from surveilr import config
 from surveilr import messaging
 from surveilr import models
 from surveilr import utils
@@ -184,6 +185,10 @@ application = SurveilrApplication()
 
 
 def main():
+    riak_host = config.get_str('riak', 'host')
+    riak_port = config.get_int('riak', 'port')
+
+    riakalchemy.connect(host=riak_host, port=riak_port)
     socket = eventlet.listen(('', 9877))
     eventlet.wsgi.server(socket, application)
 
