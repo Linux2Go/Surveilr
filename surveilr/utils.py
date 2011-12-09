@@ -20,6 +20,9 @@
     Utility functions
 """
 
+import httplib2
+import json
+
 
 def truncate(number, rounding_factor):
     """Truncate to nearest arbitrary multiple
@@ -34,3 +37,21 @@ def truncate(number, rounding_factor):
     1050
     """
     return (int(number) / int(rounding_factor)) * int(rounding_factor)
+
+
+def enhance_data_point(data_point):
+    http = httplib2.Http(timeout=10)
+
+    service = data_point.service[0]
+    user = service.user[0]
+
+    for plugins in service.plugins:
+        saved_state = plugins.get('saved_state', None)
+        url = plugins.get('url')
+        body = json.dumps({'timestamp': data_point.timestamp,
+                           'metrics': data_point.metrics,
+                           'service_id': service.key,
+                           'user_id': user.key,
+                           'saved_state': saved_state})
+
+        http.request(url, method="POST", body=body)

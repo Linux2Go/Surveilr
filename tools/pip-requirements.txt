@@ -6,3 +6,5 @@ webob
 python-clickatell
 mock
 eventlet
+httplib2
+yanc

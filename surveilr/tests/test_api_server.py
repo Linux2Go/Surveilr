@@ -49,7 +49,6 @@ class APIServerTests(unittest.TestCase):
         resp = application(req)
         self.assertEquals(resp.status_int, 200)
 
-        print resp.body, type(resp.body)
         user = json.loads(resp.body)
         self.assertEquals(user['messaging_driver'], 'fake')
         self.assertEquals(user['messaging_address'], 'foo')
