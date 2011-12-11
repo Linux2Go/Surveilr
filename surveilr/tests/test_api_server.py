@@ -25,6 +25,8 @@ import mock
 import unittest
 from webob import Request
 
+from surveilr import models
+from surveilr import utils
 from surveilr.api import server
 from surveilr.api.server import application
 
@@ -114,7 +116,14 @@ class APIServerTests(unittest.TestCase):
                                          'timestamp': 13217362355575,
                                          'metrics': {'duration': 85000,
                                                      'response_size': 12435}}))
-        resp = application(req)
+        with mock.patch('surveilr.api.server.eventlet') as eventlet:
+            resp = application(req)
+
+            self.assertEquals(eventlet.spawn_n.call_args[0][0],
+                              utils.enhance_data_point)
+            self.assertEquals(type(eventlet.spawn_n.call_args[0][1]),
+                              models.LogEntry)
+
         self.assertEquals(resp.status_int, 200)
 
         req = Request.blank('/services/%s/metrics' % service_id)

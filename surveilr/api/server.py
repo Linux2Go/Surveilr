@@ -133,7 +133,9 @@ class MetricController(object):
         service = models.Service.get(service_name)
         data['service'] = [service]
         data['timestamp'] = utils.truncate(time.time(), 60)
-        models.LogEntry(**data).save()
+        log_entry = models.LogEntry(**data)
+        log_entry.save()
+        eventlet.spawn_n(utils.enhance_data_point, log_entry)
         return Response('')
 
     def index(self, req, service_name):

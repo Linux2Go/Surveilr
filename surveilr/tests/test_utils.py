@@ -35,7 +35,9 @@ class UtilsTests(unittest.TestCase):
         timestamp = int(time.time() * 1000)
         metrics = {'time': 773,
                    'size': 12554}
+        new_state = ['somestate']
 
+        # Create the user, service and log entry
         user = models.User()
         user.save()
         user_id = user.key
@@ -54,10 +56,15 @@ class UtilsTests(unittest.TestCase):
         log_entry.save()
 
         with mock.patch('surveilr.utils.httplib2') as httplib2:
+            # Mock out the http calls
+            request_call = httplib2.Http.return_value.request
+            request_call.return_value = (None,
+                                         json.dumps({'state': new_state}))
+
+            # Exercise the SUT
             utils.enhance_data_point(log_entry)
 
-            request_call = httplib2.Http.return_value.request
-
+            # Verify everything
             self.assertEquals(request_call.call_args[0], (url,), 'Wrong url')
             self.assertEquals(len(request_call.call_args[1]), 2,
                               'Wrong number of kwargs')
@@ -76,6 +83,10 @@ class UtilsTests(unittest.TestCase):
                                                     'user_id': user_id,
                                                     'metrics': metrics,
                                                     'saved_state': None})
+
+            self.assertEquals(len(service.plugins), 1)
+            self.assertDictEqual(service.plugins[0],
+                                 {'url': url, 'saved_state': new_state})
 
     def test_truncate(self):
         self.assertEquals(utils.truncate(133, 1), 133)
