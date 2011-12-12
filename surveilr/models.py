@@ -36,6 +36,7 @@ class Service(RiakObject):
     name = String()
     most_recent_log_entry = RelatedObjects()
     user = RelatedObjects(backref=True)
+    plugins = Dict()
 
 
 class User(RiakObject):

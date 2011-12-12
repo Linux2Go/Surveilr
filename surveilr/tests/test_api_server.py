@@ -25,6 +25,8 @@ import mock
 import unittest
 from webob import Request
 
+from surveilr import models
+from surveilr import utils
 from surveilr.api import server
 from surveilr.api.server import application
 
@@ -49,7 +51,6 @@ class APIServerTests(unittest.TestCase):
         resp = application(req)
         self.assertEquals(resp.status_int, 200)
 
-        print resp.body, type(resp.body)
         user = json.loads(resp.body)
         self.assertEquals(user['messaging_driver'], 'fake')
         self.assertEquals(user['messaging_address'], 'foo')
@@ -101,6 +102,40 @@ class APIServerTests(unittest.TestCase):
         resp = application(req)
         self.assertEquals(resp.status_int, 404)
 
+    def test_add_remove_plugin_to_service(self):
+        url = 'http://foo.bar/'
+        req = Request.blank('/services',
+                            method='POST',
+                            POST=json.dumps({'name': 'this_or_the_other'}))
+        resp = application(req)
+        self.assertEquals(resp.status_int, 200)
+
+        service_id = json.loads(resp.body)['id']
+
+        def get_plugins(service_id):
+            req = Request.blank('/services/%s' % service_id)
+            resp = application(req)
+            self.assertEquals(resp.status_int, 200)
+            print 'body', resp.body
+            return json.loads(resp.body)['plugins']
+
+        req = Request.blank('/services/%s' % service_id, method="PUT",
+                            POST=json.dumps({'plugins': [url]}))
+        resp = application(req)
+        self.assertEquals(resp.status_int, 200)
+
+        plugins = get_plugins(service_id)
+        self.assertEquals(plugins, [url])
+
+        req = Request.blank('/services/%s' % service_id, method="PUT",
+                            POST=json.dumps({'plugins': []}))
+        resp = application(req)
+        self.assertEquals(resp.status_int, 200)
+
+        plugins = get_plugins(service_id)
+        self.assertEquals(plugins, [])
+
+
     def test_create_retrieve_metric(self):
         req = Request.blank('/services',
                             method='POST',
@@ -115,7 +150,14 @@ class APIServerTests(unittest.TestCase):
                                          'timestamp': 13217362355575,
                                          'metrics': {'duration': 85000,
                                                      'response_size': 12435}}))
-        resp = application(req)
+        with mock.patch('surveilr.api.server.eventlet') as eventlet:
+            resp = application(req)
+
+            self.assertEquals(eventlet.spawn_n.call_args[0][0],
+                              utils.enhance_data_point)
+            self.assertEquals(type(eventlet.spawn_n.call_args[0][1]),
+                              models.LogEntry)
+
         self.assertEquals(resp.status_int, 200)
 
         req = Request.blank('/services/%s/metrics' % service_id)

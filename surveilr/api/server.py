@@ -110,7 +110,11 @@ class ServiceController(object):
         Returns information for the given service"""
         try:
             service = models.Service.get(id)
-            return Response({'id': service.key})
+
+            plugins = [p['url'] for p in getattr(service, 'plugins', [])]
+
+            return Response(json.dumps({'id': service.key,
+                                        'plugins': plugins}))
         except riakalchemy.NoSuchObjectError:
             return HTTPNotFound()
 
@@ -119,6 +123,21 @@ class ServiceController(object):
 
         Delete the given service"""
         models.Service.get(id).delete()
+        return Response('')
+
+    def update(self, req, id):
+        data = json.loads(req.body)
+
+        service = models.Service.get(id)
+
+        # Plugins
+        plugin_states = dict((p['url'], p['saved_state'])
+                                 for p in getattr(service, 'plugins', []))
+
+        service.plugins = [{'url': url,
+                           'saved_state': plugin_states.get(url, None)}
+                               for url in data['plugins']]
+        service.save()
         return Response('')
 
 
@@ -133,7 +152,9 @@ class MetricController(object):
         service = models.Service.get(service_name)
         data['service'] = [service]
         data['timestamp'] = utils.truncate(time.time(), 60)
-        models.LogEntry(**data).save()
+        log_entry = models.LogEntry(**data)
+        log_entry.save()
+        eventlet.spawn_n(utils.enhance_data_point, log_entry)
         return Response('')
 
     def index(self, req, service_name):
