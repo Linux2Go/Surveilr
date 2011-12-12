@@ -102,6 +102,40 @@ class APIServerTests(unittest.TestCase):
         resp = application(req)
         self.assertEquals(resp.status_int, 404)
 
+    def test_add_remove_plugin_to_service(self):
+        url = 'http://foo.bar/'
+        req = Request.blank('/services',
+                            method='POST',
+                            POST=json.dumps({'name': 'this_or_the_other'}))
+        resp = application(req)
+        self.assertEquals(resp.status_int, 200)
+
+        service_id = json.loads(resp.body)['id']
+
+        def get_plugins(service_id):
+            req = Request.blank('/services/%s' % service_id)
+            resp = application(req)
+            self.assertEquals(resp.status_int, 200)
+            print 'body', resp.body
+            return json.loads(resp.body)['plugins']
+
+        req = Request.blank('/services/%s' % service_id, method="PUT",
+                            POST=json.dumps({'plugins': [url]}))
+        resp = application(req)
+        self.assertEquals(resp.status_int, 200)
+
+        plugins = get_plugins(service_id)
+        self.assertEquals(plugins, [url])
+
+        req = Request.blank('/services/%s' % service_id, method="PUT",
+                            POST=json.dumps({'plugins': []}))
+        resp = application(req)
+        self.assertEquals(resp.status_int, 200)
+
+        plugins = get_plugins(service_id)
+        self.assertEquals(plugins, [])
+
+
     def test_create_retrieve_metric(self):
         req = Request.blank('/services',
                             method='POST',
