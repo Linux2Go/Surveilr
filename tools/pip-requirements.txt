@@ -1,5 +1,5 @@
 -e git://github.com/basho/riak-python-client.git@master#egg=riak
--e bzr+http://bazaar.launchpad.net/~linux2go-jenkins/riakalchemy/trunk#egg=riakalchemy
+-e git://github.com/Linux2Go/riakalchemy.git@master#egg=riakalchemy
 nose
 routes
 webob
