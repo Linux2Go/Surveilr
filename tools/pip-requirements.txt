@@ -8,3 +8,4 @@ mock
 eventlet
 httplib2
 yanc
+nosexcover
