@@ -52,7 +52,6 @@ setup(
         'Intended Audience :: Information Technology',
         'Intended Audience :: System Administrators',
         'License :: OSI Approved :: GNU Affero General Public License v3',
-        'GNU Library or Lesser General Public License (LGPL)',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python',
         'Topic :: Internet :: Log Analysis',
