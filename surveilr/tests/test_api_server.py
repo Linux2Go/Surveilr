@@ -28,13 +28,14 @@ from webob import Request
 from surveilr import models
 from surveilr import utils
 from surveilr.api import server
-from surveilr.api.server import application
+from surveilr.api.server import SurveilrApplication
 
 
 class APIServerTests(unittest.TestCase):
     def setUp(self):
         import riakalchemy
         riakalchemy.connect()
+        self.application = SurveilrApplication({})
 
     def test_create_retrieve_user(self):
         """Create, retrieve, delete, attempt to retrieve again"""
@@ -42,13 +43,13 @@ class APIServerTests(unittest.TestCase):
                             method='POST',
                             POST=json.dumps({'messaging_driver': 'fake',
                                              'messaging_address': 'foo'}))
-        resp = application(req)
+        resp = self.application(req)
         self.assertEquals(resp.status_int, 200)
 
         service_id = json.loads(resp.body)['id']
 
         req = Request.blank('/users/%s' % service_id)
-        resp = application(req)
+        resp = self.application(req)
         self.assertEquals(resp.status_int, 200)
 
         user = json.loads(resp.body)
@@ -56,18 +57,18 @@ class APIServerTests(unittest.TestCase):
         self.assertEquals(user['messaging_address'], 'foo')
 
         req = Request.blank('/users/%s' % service_id, method='DELETE')
-        resp = application(req)
+        resp = self.application(req)
         self.assertEquals(resp.status_int, 200)
 
         req = Request.blank('/users/%s' % service_id)
-        resp = application(req)
+        resp = self.application(req)
         self.assertEquals(resp.status_int, 404)
 
     def test_send_notification(self):
         req = Request.blank('/users',
                             method='POST',
                             POST=json.dumps({}))
-        resp = application(req)
+        resp = self.application(req)
         self.assertEquals(resp.status_int, 200)
 
         user_id = json.loads(resp.body)['id']
@@ -77,7 +78,7 @@ class APIServerTests(unittest.TestCase):
                                          'timestamp': 13217362355575,
                                          'metrics': {'duration': 85000,
                                                      'response_size': 12435}}))
-        resp = application(req)
+        resp = self.application(req)
         self.assertEquals(resp.status_int, 200)
 
     def test_create_retrieve_service(self):
@@ -85,21 +86,21 @@ class APIServerTests(unittest.TestCase):
         req = Request.blank('/services',
                             method='POST',
                             POST=json.dumps({'name': 'this_or_the_other'}))
-        resp = application(req)
+        resp = self.application(req)
         self.assertEquals(resp.status_int, 200)
 
         service_id = json.loads(resp.body)['id']
 
         req = Request.blank('/services/%s' % service_id)
-        resp = application(req)
+        resp = self.application(req)
         self.assertEquals(resp.status_int, 200)
 
         req = Request.blank('/services/%s' % service_id, method='DELETE')
-        resp = application(req)
+        resp = self.application(req)
         self.assertEquals(resp.status_int, 200)
 
         req = Request.blank('/services/%s' % service_id)
-        resp = application(req)
+        resp = self.application(req)
         self.assertEquals(resp.status_int, 404)
 
     def test_add_remove_plugin_to_service(self):
@@ -107,21 +108,21 @@ class APIServerTests(unittest.TestCase):
         req = Request.blank('/services',
                             method='POST',
                             POST=json.dumps({'name': 'this_or_the_other'}))
-        resp = application(req)
+        resp = self.application(req)
         self.assertEquals(resp.status_int, 200)
 
         service_id = json.loads(resp.body)['id']
 
         def get_plugins(service_id):
             req = Request.blank('/services/%s' % service_id)
-            resp = application(req)
+            resp = self.application(req)
             self.assertEquals(resp.status_int, 200)
             print 'body', resp.body
             return json.loads(resp.body)['plugins']
 
         req = Request.blank('/services/%s' % service_id, method="PUT",
                             POST=json.dumps({'plugins': [url]}))
-        resp = application(req)
+        resp = self.application(req)
         self.assertEquals(resp.status_int, 200)
 
         plugins = get_plugins(service_id)
@@ -129,7 +130,7 @@ class APIServerTests(unittest.TestCase):
 
         req = Request.blank('/services/%s' % service_id, method="PUT",
                             POST=json.dumps({'plugins': []}))
-        resp = application(req)
+        resp = self.application(req)
         self.assertEquals(resp.status_int, 200)
 
         plugins = get_plugins(service_id)
@@ -140,7 +141,7 @@ class APIServerTests(unittest.TestCase):
         req = Request.blank('/services',
                             method='POST',
                             POST='{"name": "this_or_the_other"}')
-        resp = application(req)
+        resp = self.application(req)
         self.assertEquals(resp.status_int, 200)
 
         service_id = json.loads(resp.body)['id']
@@ -151,7 +152,7 @@ class APIServerTests(unittest.TestCase):
                                          'metrics': {'duration': 85000,
                                                      'response_size': 12435}}))
         with mock.patch('surveilr.api.server.eventlet') as eventlet:
-            resp = application(req)
+            resp = self.application(req)
 
             self.assertEquals(eventlet.spawn_n.call_args[0][0],
                               utils.enhance_data_point)
@@ -161,11 +162,11 @@ class APIServerTests(unittest.TestCase):
         self.assertEquals(resp.status_int, 200)
 
         req = Request.blank('/services/%s/metrics' % service_id)
-        resp = application(req)
+        resp = self.application(req)
 
     def test_invalid_url(self):
         req = Request.blank('/stuff')
-        resp = application(req)
+        resp = self.application(req)
         self.assertEquals(resp.status_int, 404)
 
     @mock.patch('surveilr.api.server.eventlet', spec=['listen', 'wsgi'])
@@ -177,5 +178,6 @@ class APIServerTests(unittest.TestCase):
 
         riakalchemy.connect.assert_called_with(host='127.0.0.1', port=8098)
         eventlet.listen.assert_called_with(('', 9877))
-        eventlet.wsgi.server.assert_called_with(socket_sentinel,
-                                                application)
+        self.assertEquals(eventlet.wsgi.server.call_args[0][0], socket_sentinel)
+        self.assertEquals(type(eventlet.wsgi.server.call_args[0][1]),
+                          type(self.application))

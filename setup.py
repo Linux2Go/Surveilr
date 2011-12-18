@@ -20,6 +20,19 @@
 #
 from setuptools import setup
 
+def get_install_requires():
+    install_requires = []
+    with open('tools/pip-requirements.txt', 'r') as fp:
+        for l in fp:
+            l = l.strip()
+            if l.startswith('#'):
+                continue
+            elif l.startswith('-e'):
+                install_requires.append(l[l.index('#egg=')+5:])
+            else:
+                install_requires.append(l)
+    return install_requires
+
 setup(
     name='surveilr',
     version='0.1a1',
@@ -29,7 +42,7 @@ setup(
     author_email='soren@linux2go.dk',
     url='http://surveilr.org/',
     packages=['surveilr'],
-    install_requires=['riakalchemy'],
+    install_requires=get_install_requires(),
     test_suite='nose.collector',
     install_package_data=True,
     classifiers=[

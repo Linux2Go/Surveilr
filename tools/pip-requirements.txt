@@ -9,3 +9,6 @@ eventlet
 httplib2
 yanc
 nosexcover
+pastedeploy
+paste
+PasteScript
