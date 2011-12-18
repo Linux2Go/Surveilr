@@ -205,12 +205,15 @@ class SurveilrApplication(object):
 
         return getattr(controller, method)(req, **kwargs)
 
+
 def server_factory(global_conf, host, port):
     port = int(port)
+
     def serve(app):
         socket = eventlet.listen((host, port))
         eventlet.wsgi.server(socket, app)
     return serve
+
 
 def main():
     riak_host = config.get_str('riak', 'host')
@@ -219,6 +222,7 @@ def main():
     riakalchemy.connect(host=riak_host, port=riak_port)
 
     server_factory({}, '', 9877)(SurveilrApplication({}))
+
 
 if __name__ == '__main__':  # pragma: nocover
     main()
