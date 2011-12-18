@@ -136,7 +136,6 @@ class APIServerTests(unittest.TestCase):
         plugins = get_plugins(service_id)
         self.assertEquals(plugins, [])
 
-
     def test_create_retrieve_metric(self):
         req = Request.blank('/services',
                             method='POST',
@@ -178,6 +177,7 @@ class APIServerTests(unittest.TestCase):
 
         riakalchemy.connect.assert_called_with(host='127.0.0.1', port=8098)
         eventlet.listen.assert_called_with(('', 9877))
-        self.assertEquals(eventlet.wsgi.server.call_args[0][0], socket_sentinel)
+        self.assertEquals(eventlet.wsgi.server.call_args[0][0],
+                          socket_sentinel)
         self.assertEquals(type(eventlet.wsgi.server.call_args[0][1]),
                           type(self.application))
