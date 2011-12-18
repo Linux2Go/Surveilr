@@ -182,6 +182,9 @@ class SurveilrApplication(object):
                  controller='NotificationController',
                  path_prefix='/users/{user_id}')
 
+    def __init__(self, global_config):
+        pass
+
     @wsgify
     def __call__(self, req):
         """Where it all happens
@@ -202,17 +205,20 @@ class SurveilrApplication(object):
 
         return getattr(controller, method)(req, **kwargs)
 
-application = SurveilrApplication()
-
+def server_factory(global_conf, host, port):
+    port = int(port)
+    def serve(app):
+        socket = eventlet.listen((host, port))
+        eventlet.wsgi.server(socket, app)
+    return serve
 
 def main():
     riak_host = config.get_str('riak', 'host')
     riak_port = config.get_int('riak', 'port')
 
     riakalchemy.connect(host=riak_host, port=riak_port)
-    socket = eventlet.listen(('', 9877))
-    eventlet.wsgi.server(socket, application)
 
+    server_factory({}, '', 9877)(SurveilrApplication({}))
 
 if __name__ == '__main__':  # pragma: nocover
     main()
