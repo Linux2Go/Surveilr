@@ -25,7 +25,6 @@ from surveilr import tests
 
 import os.path
 
-
 class ConfigTest(tests.TestCase):
     def defaults_file(self):
         return os.path.join(os.path.dirname(__file__),
@@ -73,3 +72,15 @@ class ConfigPrecedenceTests(ConfigTest):
 
     def test_user_config_overrides_defaults(self):
         self.assertEquals(config.get_str('test_override', 'foo'), 'baz')
+
+
+class InvalidConfigTests(ConfigTest):
+    def test_nonexistant_setting(self):
+        get_int = config.get_int
+        NoOptionError = config.NoOptionError
+        self.assertRaises(NoOptionError, get_int, 'empty_section', 'foo')
+
+    def test_nonexistant_section(self):
+        get_int = config.get_int
+        NoSectionError = config.NoSectionError
+        self.assertRaises(NoSectionError, get_int, 'not_a_real_section', 'foo')

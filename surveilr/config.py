@@ -25,6 +25,9 @@ import os.path
 
 cfg = None
 
+NoSectionError = ConfigParser.NoSectionError
+NoOptionError = ConfigParser.NoOptionError
+
 
 def defaults_file():
     return os.path.join(os.path.dirname(__file__), 'defaults.cfg')
