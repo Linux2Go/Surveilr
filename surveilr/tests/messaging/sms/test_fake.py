@@ -23,6 +23,7 @@ import mock
 from surveilr import tests
 from surveilr.messaging.sms import fake
 
+
 class FakeSMSMessagingTest(tests.TestCase):
     def test_send(self):
         recipient1 = mock.sentinel.recipient1
@@ -36,4 +37,3 @@ class FakeSMSMessagingTest(tests.TestCase):
 
         self.assertEquals(drv.msgs, [(recipient1, info1),
                                      (recipient2, info2)])
-        

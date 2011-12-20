@@ -54,5 +54,3 @@ class BulkSMSDriverTests(tests.TestCase):
         driver.client.send_sms.assert_called_with(recipients=[msisdn],
                                                   sender='testsender',
                                                   text=str(info))
-
-

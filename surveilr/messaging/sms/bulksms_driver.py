@@ -24,6 +24,7 @@ from surveilr import drivers
 
 import BulkSMS
 
+
 class BulkSMSMessaging(object):
     def __init__(self):
         username = config.get_str('sms', 'username')

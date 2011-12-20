@@ -25,6 +25,7 @@ from surveilr import drivers
 from clickatell.api import Clickatell
 from clickatell import constants as cc
 
+
 class ClickatellMessaging(object):
     def __init__(self):
         username = config.get_str('sms', 'username')

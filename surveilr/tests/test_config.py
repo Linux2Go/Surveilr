@@ -25,6 +25,7 @@ from surveilr import tests
 
 import os.path
 
+
 class ConfigTest(tests.TestCase):
     def defaults_file(self):
         return os.path.join(os.path.dirname(__file__),

@@ -22,8 +22,10 @@
 
 from surveilr import drivers
 
+
 class FakeMessaging(object):
     msgs = []
+
     def send(self, recipient, info):
         self.msgs.append((recipient, info))
 

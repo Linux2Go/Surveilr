@@ -25,6 +25,7 @@ import surveilr.messaging.sms.fake
 import surveilr.messaging.sms.clickatell_driver
 import surveilr.messaging.sms.bulksms_driver
 
+
 class SMSMessaging(object):
     def __init__(self):
         driver_name = config.get_str('sms', 'driver')

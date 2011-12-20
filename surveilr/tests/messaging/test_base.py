@@ -27,6 +27,7 @@ from surveilr import messaging
 from surveilr import tests
 from surveilr.tests import utils
 
+
 class MessagingAPITests(tests.TestCase):
     def test_send(self):
         user = utils.get_test_user()

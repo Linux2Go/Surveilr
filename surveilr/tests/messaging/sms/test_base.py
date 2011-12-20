@@ -23,13 +23,14 @@ import mock
 from surveilr import tests
 from surveilr.messaging import sms
 
+
 class SMSMessagingTest(tests.TestCase):
     @mock.patch('surveilr.messaging.sms.drivers')
     def test_init(self, drivers):
         sms.SMSMessaging()
         drivers.get_driver.assert_called_with('sms',
                                               'not_your_average_sms_driver')
-        
+
     @mock.patch('surveilr.messaging.sms.drivers')
     def test_send(self, drivers):
         drv = sms.SMSMessaging()
@@ -38,5 +39,5 @@ class SMSMessagingTest(tests.TestCase):
 
         drv.send(recipient, info)
 
-        drivers.get_driver.return_value.send.assert_called_with(recipient, info)
-
+        drivers.get_driver.return_value.send.assert_called_with(recipient,
+                                                                info)
