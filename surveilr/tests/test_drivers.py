@@ -20,13 +20,12 @@
     Tests for driver infrastructure
 """
 
-import unittest
-
 from surveilr import drivers
 from surveilr import exceptions
+from surveilr import tests
 
 
-class DriversTests(unittest.TestCase):
+class DriversTests(tests.TestCase):
     def register_empty_driver(self, driver_type, driver_name,
                               add_cleanup=True):
         class SomeDriver(object):

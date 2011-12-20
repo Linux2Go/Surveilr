@@ -21,7 +21,6 @@
 """
 
 import mock
-import unittest
 
 from surveilr import drivers
 from surveilr import messaging
@@ -30,7 +29,7 @@ from surveilr.messaging import sms
 from surveilr.tests import utils
 
 
-class FakeMessagingDriverTests(unittest.TestCase):
+class FakeMessagingDriverTests(tests.TestCase):
     def setUp(self):
         import surveilr.messaging.fake
         # This does nothing, but pyflakes gets upset if we import it
@@ -74,7 +73,7 @@ class SMSMessagingDriverTests(tests.TestCase):
                                                  text=str(info))
 
 
-class MessagingAPITests(unittest.TestCase):
+class MessagingAPITests(tests.TestCase):
     def test_send(self):
         user = utils.get_test_user()
         info = {'service': 'service_id',

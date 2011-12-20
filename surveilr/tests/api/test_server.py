@@ -22,16 +22,16 @@
 
 import json
 import mock
-import unittest
 from webob import Request
 
 from surveilr import models
+from surveilr import tests
 from surveilr import utils
 from surveilr.api import server
 from surveilr.api.server import SurveilrApplication
 
 
-class APIServerTests(unittest.TestCase):
+class APIServerTests(tests.TestCase):
     def setUp(self):
         import riakalchemy
         riakalchemy.connect()
