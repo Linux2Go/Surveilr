@@ -33,8 +33,7 @@ from surveilr.api.server import SurveilrApplication
 
 class APIServerTests(tests.TestCase):
     def setUp(self):
-        import riakalchemy
-        riakalchemy.connect()
+        super(APIServerTests, self).setUp()
         self.application = SurveilrApplication({})
 
     def test_create_retrieve_user(self):

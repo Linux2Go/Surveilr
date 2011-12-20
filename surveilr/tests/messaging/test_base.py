@@ -25,53 +25,7 @@ import mock
 from surveilr import drivers
 from surveilr import messaging
 from surveilr import tests
-from surveilr.messaging import sms
 from surveilr.tests import utils
-
-
-class FakeMessagingDriverTests(tests.TestCase):
-    def setUp(self):
-        import surveilr.messaging.fake
-        # This does nothing, but pyflakes gets upset if we import it
-        # and never "use" it.
-        surveilr.messaging.fake
-        self.driver = drivers.get_driver('messaging', 'fake')
-
-    def test_send(self):
-        user = utils.get_test_user()
-        info = {'service': 'service_id',
-                'state': 'normal',
-                'previous_state': 'unexpected high'}
-        self.driver.send(user, info)
-
-
-class SMSMessagingDriverTests(tests.TestCase):
-    @mock.patch('surveilr.messaging.sms.Clickatell')
-    def test_instantiate_client(self, clickatell):
-        self.driver = sms.SMSMessaging()
-
-        sendmsg_defaults = {'callback': 1,
-                            'req_feat': 8240,
-                            'deliv_ack': 1,
-                            'msg_type': 'SMS_TEXT'}
-        clickatell.assert_called_with('testuser', 'testpassword', 'testapiid',
-                                      sendmsg_defaults=sendmsg_defaults)
-
-    def test_send(self):
-        driver = sms.SMSMessaging()
-        driver.client = mock.Mock()
-
-        msisdn = '12345678'
-        user = utils.get_test_user(messaging_driver='sms',
-                                   messaging_address=msisdn)
-        info = utils.get_test_notification_info()
-
-        driver.send(user, info)
-
-        driver.client.sendmsg.assert_called_with(recipients=[msisdn],
-                                                 sender='testsender',
-                                                 text=str(info))
-
 
 class MessagingAPITests(tests.TestCase):
     def test_send(self):
