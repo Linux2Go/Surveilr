@@ -23,13 +23,13 @@
 import json
 import time
 import mock
-import unittest
 
 from surveilr import models
+from surveilr import tests
 from surveilr import utils
 
 
-class UtilsTests(unittest.TestCase):
+class UtilsTests(tests.TestCase):
     def test_enhance(self):
         url = 'http://some-url:345/fooo'
         timestamp = int(time.time() * 1000)
