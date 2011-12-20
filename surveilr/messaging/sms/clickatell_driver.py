@@ -17,9 +17,8 @@
     License along with this program.  If not, see
     <http://www.gnu.org/licenses/>.
 
-    SMS messaging driver
+    Clickatell SMS driver
 """
-
 from surveilr import config
 from surveilr import drivers
 
@@ -27,7 +26,7 @@ from clickatell.api import Clickatell
 from clickatell import constants as cc
 
 
-class SMSMessaging(object):
+class ClickatellMessaging(object):
     def __init__(self):
         username = config.get_str('sms', 'username')
         password = config.get_str('sms', 'password')
@@ -49,4 +48,4 @@ class SMSMessaging(object):
                             text=str(info))
 
 
-drivers.register_driver('messaging', 'sms', SMSMessaging())
+drivers.register_driver('sms', 'clickatell', ClickatellMessaging())

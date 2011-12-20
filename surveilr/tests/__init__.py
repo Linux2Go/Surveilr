@@ -20,6 +20,7 @@
 
 import mock
 import os.path
+import riakalchemy
 import unittest
 
 from surveilr import config
@@ -39,8 +40,13 @@ class TestCase(unittest.TestCase):
         return os.path.join(os.path.dirname(__file__),
                             os.path.pardir, 'defaults.cfg')
 
+    def set_cfg_value(self, section, option, value):
+        config.cfg.set(section, option, value)
+
     def setUp(self):
         super(TestCase, self).setUp()
+        riakalchemy.connect()
+
         with mock.patch('surveilr.config.defaults_file') as defaults_file:
             with mock.patch('surveilr.config.config_files') as config_files:
                 config_files.return_value = self.config_files()
