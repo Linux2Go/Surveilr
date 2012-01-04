@@ -16,4 +16,33 @@
     You should have received a copy of the GNU Affero General Public
     License along with this program.  If not, see
     <http://www.gnu.org/licenses/>.
+
+    API server auth implementation
 """
+
+from surveilr import models
+
+from riakalchemy import NoSuchObjectError
+
+class AlwaysRequireAuth(object):
+    def __call__(self, environ, status, headers):
+        return 'repoze.who.identity' not in environ
+
+
+class SurveilrAuthPlugin(object):
+    def authenticate(self, environ, identity):
+        try:
+            login = identity['login']
+            password = identity['password']
+        except KeyError:
+            return None
+
+        try:
+            user = models.User.get(key=login)
+        except NoSuchObjectError:
+            return None
+
+        if user.api_key == password:
+            environ['surveilr.user'] = user
+            return login
+        return None

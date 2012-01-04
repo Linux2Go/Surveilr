@@ -27,8 +27,8 @@ from webob import Request
 from surveilr import models
 from surveilr import tests
 from surveilr import utils
-from surveilr.api import server
-from surveilr.api.server import SurveilrApplication
+from surveilr.api.server import app
+from surveilr.api.server.app import SurveilrApplication
 
 
 class APIServerTests(tests.TestCase):
@@ -36,12 +36,32 @@ class APIServerTests(tests.TestCase):
         super(APIServerTests, self).setUp()
         self.application = SurveilrApplication({})
 
-    def test_create_retrieve_user(self):
-        """Create, retrieve, delete, attempt to retrieve again"""
+    def test_create_user_denied(self):
+        """Creating a user is refused for non-privileged users"""
         req = Request.blank('/users',
                             method='POST',
                             POST=json.dumps({'messaging_driver': 'fake',
                                              'messaging_address': 'foo'}))
+        class FakeUser(object):
+            credentials = {'admin': False}
+
+        req.environ['surveilr.user'] = FakeUser()
+        resp = self.application(req)
+        self.assertEquals(resp.status_int, 403)
+
+    def test_create_retrieve_user(self):
+        self._test_create_retrieve_user()
+
+    def test_create_retrieve_admin_user(self):
+        self._test_create_retrieve_user(admin=True)
+
+    def _test_create_retrieve_user(self, admin=False):
+        """Create, retrieve, delete, attempt to retrieve again (user)"""
+        req = Request.blank('/users',
+                            method='POST',
+                            POST=json.dumps({'messaging_driver': 'fake',
+                                             'messaging_address': 'foo',
+                                             'admin': True}))
         resp = self.application(req)
         self.assertEquals(resp.status_int, 200)
 
@@ -54,6 +74,7 @@ class APIServerTests(tests.TestCase):
         user = json.loads(resp.body)
         self.assertEquals(user['messaging_driver'], 'fake')
         self.assertEquals(user['messaging_address'], 'foo')
+        self.assertEquals(user['admin'], True)
 
         req = Request.blank('/users/%s' % service_id, method='DELETE')
         resp = self.application(req)
@@ -81,7 +102,7 @@ class APIServerTests(tests.TestCase):
         self.assertEquals(resp.status_int, 200)
 
     def test_create_retrieve_service(self):
-        """Create, retrieve, delete, attempt to retrieve again"""
+        """Create, retrieve, delete, attempt to retrieve again (service)"""
         req = Request.blank('/services',
                             method='POST',
                             POST=json.dumps({'name': 'this_or_the_other'}))
@@ -149,7 +170,7 @@ class APIServerTests(tests.TestCase):
                                          'timestamp': 13217362355575,
                                          'metrics': {'duration': 85000,
                                                      'response_size': 12435}}))
-        with mock.patch('surveilr.api.server.eventlet') as eventlet:
+        with mock.patch('surveilr.api.server.app.eventlet') as eventlet:
             resp = self.application(req)
 
             self.assertEquals(eventlet.spawn_n.call_args[0][0],
@@ -167,12 +188,12 @@ class APIServerTests(tests.TestCase):
         resp = self.application(req)
         self.assertEquals(resp.status_int, 404)
 
-    @mock.patch('surveilr.api.server.eventlet', spec=['listen', 'wsgi'])
-    @mock.patch('surveilr.api.server.riakalchemy', spec=['connect'])
+    @mock.patch('surveilr.api.server.app.eventlet', spec=['listen', 'wsgi'])
+    @mock.patch('surveilr.api.server.app.riakalchemy', spec=['connect'])
     def test_main(self, riakalchemy, eventlet):
         socket_sentinel = mock.sentinel.return_value
         eventlet.listen.return_value = socket_sentinel
-        server.main()
+        app.main()
 
         riakalchemy.connect.assert_called_with(host='127.0.0.1', port=8098)
         eventlet.listen.assert_called_with(('', 9877))
