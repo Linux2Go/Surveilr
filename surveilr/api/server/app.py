@@ -18,11 +18,12 @@
     License along with this program.  If not, see
     <http://www.gnu.org/licenses/>.
 
-    Log collection server implementation
+    API server implementation
 """
 
 import eventlet
 import eventlet.wsgi
+import functools
 import json
 import time
 
@@ -34,11 +35,28 @@ from webob import exc
 from webob import Response
 from webob.dec import wsgify
 from webob.exc import HTTPNotFound
+from webob.exc import HTTPForbidden
 
 from surveilr import config
 from surveilr import messaging
 from surveilr import models
 from surveilr import utils
+
+def is_privileged(req):
+    if 'surveilr.user' in req.environ:
+        return req.environ['surveilr.user'].credentials['admin']
+    # This feels pretty scary
+    return True
+
+
+def privileged(f):
+    @functools.wraps(f)
+    def wrapped(self, req, *args):
+        if is_privileged(req):
+            return f(self, req, *args)
+        else:
+            return HTTPForbidden()
+    return wrapped
 
 
 class NotificationController(object):
@@ -58,15 +76,30 @@ class NotificationController(object):
 class UserController(object):
     """Routes style controller for actions related to users"""
 
+    @privileged
     def create(self, req):
         """Called for POST requests to /users
 
         Creates the user, returns a JSON object with the ID assigned
         to the user"""
         data = json.loads(req.body)
-        user = models.User(**data)
+
+        obj_data = {}
+
+        obj_data['credentials'] = {}
+
+        if 'admin' in data:
+            obj_data['credentials']['admin'] = data['admin']
+
+        for key in ['messaging_driver', 'messaging_address']:
+            if key in data:
+                obj_data[key] = data[key]
+
+        user = models.User(**obj_data)
         user.save()
-        response = {'id': user.key}
+        response = {'id': user.key,
+                    'key': user.api_key,
+                    'admin': user.credentials.get('admin', False)}
         return Response(json.dumps(response))
 
     def show(self, req, id):
@@ -77,7 +110,8 @@ class UserController(object):
             user = models.User.get(id)
             resp_dict = {'id': user.key,
                          'messaging_driver': user.messaging_driver,
-                         'messaging_address': user.messaging_address}
+                         'messaging_address': user.messaging_address,
+                         'admin': user.credentials.get('admin', False)}
             return Response(json.dumps(resp_dict))
         except riakalchemy.NoSuchObjectError:
             return HTTPNotFound()
@@ -183,7 +217,10 @@ class SurveilrApplication(object):
                  path_prefix='/users/{user_id}')
 
     def __init__(self, global_config):
-        pass
+        riak_host = config.get_str('riak', 'host')
+        riak_port = config.get_int('riak', 'port')
+
+        riakalchemy.connect(host=riak_host, port=riak_port)
 
     @wsgify
     def __call__(self, req):
@@ -216,11 +253,6 @@ def server_factory(global_conf, host, port):
 
 
 def main():
-    riak_host = config.get_str('riak', 'host')
-    riak_port = config.get_int('riak', 'port')
-
-    riakalchemy.connect(host=riak_host, port=riak_port)
-
     server_factory({}, '', 9877)(SurveilrApplication({}))
 
 

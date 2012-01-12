@@ -16,4 +16,14 @@
     You should have received a copy of the GNU Affero General Public
     License along with this program.  If not, see
     <http://www.gnu.org/licenses/>.
+
+    API server factory
 """
+import eventlet
+
+def server_factory(global_conf, host, port):
+    port = int(port)
+    def serve(application):
+        socket = eventlet.listen((host, port))
+        eventlet.wsgi.server(socket, application)
+    return serve

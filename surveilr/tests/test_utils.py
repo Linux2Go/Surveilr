@@ -23,6 +23,7 @@
 import json
 import time
 import mock
+import string
 
 from surveilr import models
 from surveilr import tests
@@ -94,3 +95,8 @@ class UtilsTests(tests.TestCase):
         self.assertEquals(utils.truncate(133, 20), 120)
         self.assertEquals(utils.truncate(133, 100), 100)
         self.assertEquals(utils.truncate(133, 200), 0)
+
+    def test_generate_key(self):
+        key = utils.generate_key()
+        self.assertEquals(len(key), 32)
+        self.assertEquals(len(key.strip(string.letters + string.digits)), 0)

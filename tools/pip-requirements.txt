@@ -13,3 +13,4 @@ pastedeploy
 paste
 PasteScript
 -e hg+https://code.google.com/p/soren-bulksms/#egg=BulkSMS
+repoze.who
