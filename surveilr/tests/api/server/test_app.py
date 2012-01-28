@@ -42,6 +42,7 @@ class APIServerTests(tests.TestCase):
                             method='POST',
                             POST=json.dumps({'messaging_driver': 'fake',
                                              'messaging_address': 'foo'}))
+
         class FakeUser(object):
             credentials = {'admin': False}
 

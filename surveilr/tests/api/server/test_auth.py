@@ -24,6 +24,7 @@ from surveilr import models
 from surveilr import tests
 from surveilr.api.server import auth
 
+
 class TestAPIServerAuth(tests.TestCase):
     def test_AlwaysRequireAuth_unauthenticated(self):
         decider = auth.AlwaysRequireAuth()
@@ -31,7 +32,9 @@ class TestAPIServerAuth(tests.TestCase):
 
     def test_AlwaysRequireAuth_already_authenticated(self):
         decider = auth.AlwaysRequireAuth()
-        self.assertEquals(decider({'repoze.who.identity': 'someone'}, '200 OK', {}), False)
+        self.assertEquals(decider({'repoze.who.identity': 'someone'},
+                                  '200 OK', {}), False)
+
 
 class TestSurveilrAuthPlugin(tests.TestCase):
     def test_authenticate_invcomplete_identity(self):
@@ -42,7 +45,6 @@ class TestSurveilrAuthPlugin(tests.TestCase):
                                                                  identity))
         self.assertEquals(env, {})
 
-
     def test_authenticate_invalid_identity(self):
         env = {}
         identity = {'login': 'testuser',
@@ -51,7 +53,6 @@ class TestSurveilrAuthPlugin(tests.TestCase):
         self.assertIsNone(auth.SurveilrAuthPlugin().authenticate(env,
                                                                  identity))
         self.assertEquals(env, {})
-
 
     def test_authenticate_valid_credentials(self):
         env = {}

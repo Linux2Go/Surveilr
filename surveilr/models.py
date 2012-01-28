@@ -24,6 +24,7 @@ from riakalchemy.types import Integer, String, Dict, RelatedObjects
 
 from surveilr import utils
 
+
 class Service(RiakObject):
     """A service that is referenced by many LogEntry's
 
@@ -52,6 +53,7 @@ class User(RiakObject):
     def pre_save(self):
         if not hasattr(self, 'api_key'):
             self.api_key = utils.generate_key()
+
 
 class LogEntry(RiakObject):
     """A log entry holding one or more metrics

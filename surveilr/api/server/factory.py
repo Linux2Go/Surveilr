@@ -21,9 +21,12 @@
 """
 import eventlet
 
+
 def server_factory(global_conf, host, port):
     port = int(port)
+
     def serve(application):
         socket = eventlet.listen((host, port))
         eventlet.wsgi.server(socket, application)
+
     return serve

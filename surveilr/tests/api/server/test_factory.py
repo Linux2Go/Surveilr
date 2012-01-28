@@ -25,6 +25,7 @@ import mock
 from surveilr import tests
 from surveilr.api.server import factory
 
+
 class APIServerFactoryTests(tests.TestCase):
     def test_server_factory_returns_callable(self):
         self.assertTrue(callable(factory.server_factory({}, 'somehost', 1234)))

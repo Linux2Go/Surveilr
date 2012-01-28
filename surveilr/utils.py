@@ -42,8 +42,9 @@ def truncate(number, rounding_factor):
 
 
 def generate_key():
-    return ''.join([random.choice(string.letters + string.digits) 
+    return ''.join([random.choice(string.letters + string.digits)
                     for x in range(32)])
+
 
 def enhance_data_point(data_point):
     http = httplib2.Http(timeout=10)
