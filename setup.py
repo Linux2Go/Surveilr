@@ -45,7 +45,7 @@ setup(
     install_requires=get_install_requires(),
     entry_points = {
         'console_scripts': [
-            'nosetests = surveilr.admin:main',
+            'surveilr-admin = surveilr.admin:main',
         ],
     },
     test_suite='nose.collector',
