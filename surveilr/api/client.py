@@ -1,8 +1,32 @@
+"""
+    Surveilr - Log aggregation, analysis and visualisation
+
+    Copyright (C) 2011  Linux2Go
+
+    This program is free software: you can redistribute it and/or
+    modify it under the terms of the GNU Affero General Public License
+    as published by the Free Software Foundation, either version 3 of
+    the License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public
+    License along with this program.  If not, see
+    <http://www.gnu.org/licenses/>.
+
+    Python Client for Surveilr
+"""
+
 import httplib2
 import json
 
+
 class UnauthorizedError(Exception):
     pass
+
 
 class SurveilrClient(object):
     def __init__(self, url, auth=None):
@@ -32,6 +56,7 @@ class SurveilrClient(object):
 
         return self.send_req(url_tail, method=method, body=json.dumps(data))
 
+
 class SurveilrDirectClient(SurveilrClient):
     def __init__(self, *args, **kwargs):
         super(SurveilrDirectClient, self).__init__(*args, **kwargs)
@@ -45,6 +70,7 @@ class SurveilrDirectClient(SurveilrClient):
         req.environ['backdoored'] = True
         resp = self.app(req)
         return resp.body
+
 
 class APIObject(object):
     def __init__(self, client):
@@ -69,4 +95,5 @@ class User(APIObject):
         return cls(client, client.req(cls, 'create', {'admin': admin}))
 
     def __repr__(self):
-        return '<User object, user_id=%r, key=%r, admin=%r>' % (self.user_id, self.key, self.admin)
+        return ('<User object, user_id=%r, key=%r, admin=%r>' %
+                (self.user_id, self.key, self.admin))

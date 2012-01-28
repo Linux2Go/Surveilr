@@ -42,6 +42,7 @@ from surveilr import messaging
 from surveilr import models
 from surveilr import utils
 
+
 def is_privileged(req):
     if 'surveilr.user' in req.environ:
         return req.environ['surveilr.user'].credentials['admin']

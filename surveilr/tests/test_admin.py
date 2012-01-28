@@ -28,10 +28,11 @@ from surveilr import admin
 from surveilr import tests
 from surveilr.api import client
 
+
 class AdminToolTests(tests.TestCase):
     def test_main(self):
         saved_commands = admin.commands
-        
+
         def restore_commands():
             admin.commands = saved_commands
 
@@ -62,19 +63,19 @@ class AdminToolTests(tests.TestCase):
                     self.succesful = True
                 if inner_self.options.reject:
                     raise client.UnauthorizedError('blah')
-                
+
         def cleanup():
             del admin.commands['Foo']
 
         self.addCleanup(cleanup)
         return Foo
- 
+
     def test_command_class_registers_in_commands(self):
         Foo = self._define_test_cmd()
 
         self.assertTrue('Foo' in admin.commands)
         self.assertEquals(admin.commands['Foo'], Foo)
-        
+
     def test_command_short_option(self):
         self._define_test_cmd()
         self.succesful = False
@@ -131,7 +132,7 @@ class AdminToolTests(tests.TestCase):
         create_user.init(['--admin'])
         create_user.client = mock.Mock()
         create_user()
-        
+
         create_user.client.new_user.assert_called_with(admin=True)
 
     def test_CreateUser_non_admin(self):
@@ -140,7 +141,7 @@ class AdminToolTests(tests.TestCase):
         create_user.init([])
         create_user.client = mock.Mock()
         create_user()
-        
+
         create_user.client.new_user.assert_called_with(admin=False)
 
     def _replace_stdout_with_stringio(self):
@@ -161,7 +162,6 @@ class AdminToolTests(tests.TestCase):
         self.assertFalse(ret)
         self.assertEquals(sys.stdout.getvalue(),
                           'Action not permitted\n')
-        
 
     def test_cmd_list(self):
         self._replace_stdout_with_stringio()
@@ -169,7 +169,7 @@ class AdminToolTests(tests.TestCase):
 
         self.assertEquals(ret, False)
         stdout = sys.stdout.getvalue()
-        self.assertEquals(len(stdout.split('\n'))-1, len(admin.commands))
+        self.assertEquals(len(stdout.split('\n')) - 1, len(admin.commands))
 
         expected_commands = set(admin.commands.keys())
         found_commands = set()

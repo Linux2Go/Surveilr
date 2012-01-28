@@ -28,12 +28,14 @@ import surveilr.api.client
 
 commands = {}
 
+
 class CommandMeta(type):
     def __new__(mcs, name, bases, dict):
         cls = type.__new__(mcs, name, bases, dict)
         if not (len(bases) == 1 and object in bases):
             commands[name] = cls
         return cls
+
 
 class Command(object):
     __metaclass__ = CommandMeta
@@ -67,7 +69,7 @@ class Command(object):
             return None
 
     def init(self, argv=None):
-        if argv is None: # pragma: nocover
+        if argv is None:  # pragma: nocover
             argv = sys.argv
 
         self.options, self.args = self.optparser.parse_args(argv)
@@ -75,6 +77,7 @@ class Command(object):
         auth = self.get_auth_obj(self.options)
 
         self.client = client_class(self.options.url, auth)
+
 
 class CreateUser(Command):
     def get_optparser(self):
@@ -92,8 +95,9 @@ class CreateUser(Command):
         print 'Admin:', user.admin
         print '--user %s --api_key %s' % (user.user_id, user.key)
 
+
 def main(argv=None):
-    if argv is None: # pragma: nocover
+    if argv is None:  # pragma: nocover
         argv = sys.argv[1:]
 
     if not len(argv):
@@ -112,5 +116,5 @@ def main(argv=None):
             return False
 
 
-if __name__ == '__main__': # pragma: nocover
+if __name__ == '__main__':  # pragma: nocover
     sys.exit(not main())

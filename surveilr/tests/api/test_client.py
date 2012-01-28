@@ -4,6 +4,7 @@ import mock
 from surveilr import tests
 from surveilr.api import client
 
+
 class APIClientTests(tests.TestCase):
     test_url = 'http://somewhere:1234/else'
     test_auth = ('foo', 'bar')
@@ -15,7 +16,6 @@ class APIClientTests(tests.TestCase):
             auth = self.test_auth
         return client.SurveilrClient(self.test_url, self.test_auth)
 
-
     @mock.patch('surveilr.api.client.User')
     def test_new_user(self, User):
         test_args = ('foo', 'bar', 'baz')
@@ -26,7 +26,6 @@ class APIClientTests(tests.TestCase):
         user = api_client.new_user(*test_args, **test_kwargs)
         User.new.assert_called_with(api_client, *test_args, **test_kwargs)
         self.assertEquals(user, User.new.return_value)
-
 
     @mock.patch('surveilr.api.client.httplib2')
     def test_send_req(self, httplib2):
@@ -46,13 +45,13 @@ class APIClientTests(tests.TestCase):
 
         self.assertEquals(client_response, 'resp')
 
-
     @mock.patch('surveilr.api.client.httplib2')
     def test_send_req_403_reraises_unauthorized_error(self, httplib2):
         api_client = self._get_client()
 
         class FakeResponse(object):
             reason = 'Just because, ok?'
+
             def __init__(self, status_code):
                 self.status = status_code
 
@@ -88,6 +87,7 @@ class APIClientTests(tests.TestCase):
 
         client_obj.req.assert_called_with(TestObject, 'ACTION', data)
 
+
 class APITypeTests(tests.TestCase):
     def _test_user_new(self, admin):
         client_obj = mock.Mock()
@@ -95,7 +95,8 @@ class APITypeTests(tests.TestCase):
                                                   'key': 'testkey',
                                                   'admin': admin})
         user = client.User.new(client_obj)
-        client_obj.req.assert_called_with(client.User, 'create', {'admin': False})
+        client_obj.req.assert_called_with(client.User, 'create',
+                                          {'admin': False})
 
         self.assertEquals(user.user_id, 'testid')
         self.assertEquals(user.key, 'testkey')
@@ -108,6 +109,7 @@ class APITypeTests(tests.TestCase):
 
     def test_user_new_not_admin(self):
         self._test_user_new(False)
+
 
 class DirectClientTests(tests.TestCase):
     def test_init(self):
@@ -122,7 +124,7 @@ class DirectClientTests(tests.TestCase):
         api_client = client.SurveilrDirectClient({})
         api_client.app = mock.Mock()
         response = mock.Mock()
-        response.body  = 'response'
+        response.body = 'response'
         api_client.app.return_value = response
 
         client_response = api_client.send_req('tail', 'METHOD', 'body')

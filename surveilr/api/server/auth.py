@@ -24,6 +24,7 @@ from surveilr import models
 
 from riakalchemy import NoSuchObjectError
 
+
 class AlwaysRequireAuth(object):
     def __call__(self, environ, status, headers):
         return 'repoze.who.identity' not in environ
