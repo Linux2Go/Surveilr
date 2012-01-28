@@ -43,6 +43,11 @@ setup(
     url='http://surveilr.org/',
     packages=['surveilr'],
     install_requires=get_install_requires(),
+    entry_points = {
+        'console_scripts': [
+            'surveilr-admin = surveilr.admin:main',
+        ],
+    },
     test_suite='nose.collector',
     install_package_data=True,
     classifiers=[
