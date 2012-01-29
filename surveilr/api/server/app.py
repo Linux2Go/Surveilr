@@ -60,7 +60,17 @@ def privileged(f):
     return wrapped
 
 
-class NotificationController(object):
+class Controller(object):
+    @classmethod
+    def dictify(cls, obj):  # pragma: nocover
+        return {}
+
+    @classmethod
+    def json_serialise(self, obj):
+        return json.dumps(self.dictify(obj))
+
+
+class NotificationController(Controller):
     """Routes style controller for notifications"""
 
     def create(self, req, user_id):
@@ -74,8 +84,16 @@ class NotificationController(object):
         return Response(json.dumps(response))
 
 
-class UserController(object):
+class UserController(Controller):
     """Routes style controller for actions related to users"""
+
+    @classmethod
+    def dictify(cls, user):
+        return {'id': user.key,
+                'key': user.api_key,
+                'messaging_driver': getattr(user, 'messaging_driver', None),
+                'messaging_address': getattr(user, 'messaging_address', None),
+                'admin': user.credentials.get('admin', False)}
 
     @privileged
     def create(self, req):
@@ -98,10 +116,7 @@ class UserController(object):
 
         user = models.User(**obj_data)
         user.save()
-        response = {'id': user.key,
-                    'key': user.api_key,
-                    'admin': user.credentials.get('admin', False)}
-        return Response(json.dumps(response))
+        return Response(self.json_serialise(user))
 
     def show(self, req, id):
         """Called for GET requests to /users/{id}
@@ -109,11 +124,7 @@ class UserController(object):
         Returns information for the given service"""
         try:
             user = models.User.get(id)
-            resp_dict = {'id': user.key,
-                         'messaging_driver': user.messaging_driver,
-                         'messaging_address': user.messaging_address,
-                         'admin': user.credentials.get('admin', False)}
-            return Response(json.dumps(resp_dict))
+            return Response(self.json_serialise(user))
         except riakalchemy.NoSuchObjectError:
             return HTTPNotFound()
 
@@ -125,8 +136,20 @@ class UserController(object):
         return Response('')
 
 
-class ServiceController(object):
+class ServiceController(Controller):
     """Routes style controller for actions related to services"""
+
+    @classmethod
+    def dictify(cls, service):
+        d = {'id': service.key,
+             'name': service.name}
+
+        if getattr(service, 'plugins', None):
+            d['plugins'] = [p['url'] for p in getattr(service, 'plugins', [])]
+        else:
+            d['plugins'] = []
+
+        return d
 
     def create(self, req):
         """Called for POST requests to /services
@@ -136,8 +159,7 @@ class ServiceController(object):
         data = json.loads(req.body)
         service = models.Service(**data)
         service.save()
-        response = {'id': service.key}
-        return Response(json.dumps(response))
+        return Response(self.json_serialise(service))
 
     def show(self, req, id):
         """Called for GET requests to /services/{id}
@@ -145,11 +167,7 @@ class ServiceController(object):
         Returns information for the given service"""
         try:
             service = models.Service.get(id)
-
-            plugins = [p['url'] for p in getattr(service, 'plugins', [])]
-
-            return Response(json.dumps({'id': service.key,
-                                        'plugins': plugins}))
+            return Response(self.json_serialise(service))
         except riakalchemy.NoSuchObjectError:
             return HTTPNotFound()
 
@@ -176,7 +194,7 @@ class ServiceController(object):
         return Response('')
 
 
-class MetricController(object):
+class MetricController(Controller):
     """Routes style controller for actions related to log entries"""
     def create(self, req, service_name):
         """Called for POST requests to /services/{id}/metrics
@@ -190,7 +208,7 @@ class MetricController(object):
         log_entry = models.LogEntry(**data)
         log_entry.save()
         eventlet.spawn_n(utils.enhance_data_point, log_entry)
-        return Response('')
+        return Response(json.dumps({}))
 
     def index(self, req, service_name):
         """Called for GET requests to /services/{id}/metrics
