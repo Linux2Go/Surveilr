@@ -20,14 +20,20 @@
     API server auth implementation
 """
 
-from surveilr import models
+from webob.dec import wsgify
+from webob.exc import HTTPUnauthorized
 
+from surveilr import models
 from riakalchemy import NoSuchObjectError
 
 
-class AlwaysRequireAuth(object):
-    def __call__(self, environ, status, headers):
-        return 'repoze.who.identity' not in environ
+def require_auth_middleware_factory(global_config):
+    @wsgify.middleware
+    def require_auth_middleware(req, app):
+        if 'repoze.who.identity' not in req.environ:
+            raise HTTPUnauthorized()
+        return app
+    return require_auth_middleware
 
 
 class SurveilrAuthPlugin(object):
