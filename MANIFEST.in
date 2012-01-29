@@ -1,2 +1,3 @@
 include surveilr/*.cfg
+include surveilr/*.ini
 include surveilr/tests/*.cfg

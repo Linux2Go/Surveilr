@@ -18,7 +18,7 @@
 #    License along with this program.  If not, see
 #    <http://www.gnu.org/licenses/>.
 #
-from setuptools import setup
+from setuptools import setup, find_packages
 
 def get_install_requires():
     install_requires = []
@@ -41,7 +41,7 @@ setup(
     license='AGPL',
     author_email='soren@linux2go.dk',
     url='http://surveilr.org/',
-    packages=['surveilr'],
+    packages=find_packages(),
     install_requires=get_install_requires(),
     entry_points = {
         'console_scripts': [
@@ -49,7 +49,7 @@ setup(
         ],
     },
     test_suite='nose.collector',
-    install_package_data=True,
+    include_package_data=True,
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Environment :: Console',
