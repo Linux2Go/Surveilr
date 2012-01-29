@@ -34,8 +34,22 @@ class SurveilrClient(object):
         self.auth = auth
 
     def new_user(self, *args, **kwargs):
-        user = User.new(self, *args, **kwargs)
-        return user
+        return User.new(self, *args, **kwargs)
+
+    def get_user(self, *args, **kwargs):
+        return User.get(self, *args, **kwargs)
+
+    def delete_user(self, *args, **kwargs):
+        return User.delete(self, *args, **kwargs)
+
+    def new_service(self, *args, **kwargs):
+        return Service.new(self, *args, **kwargs)
+
+    def get_service(self, *args, **kwargs):
+        return Service.get(self, *args, **kwargs)
+
+    def delete_service(self, *args, **kwargs):
+        return Service.delete(self, *args, **kwargs)
 
     def send_req(self, url_tail, method, body):
         http = httplib2.Http()
@@ -48,13 +62,6 @@ class SurveilrClient(object):
         if resp.status == 403:
             raise UnauthorizedError(resp.reason)
         return contents
-
-    def req(self, obj_type, action, data):
-        if action == 'create':
-            method = 'POST'
-            url_tail = '/%ss' % (obj_type.url_part)
-
-        return self.send_req(url_tail, method=method, body=json.dumps(data))
 
 
 class SurveilrDirectClient(SurveilrClient):
@@ -73,27 +80,104 @@ class SurveilrDirectClient(SurveilrClient):
 
 
 class APIObject(object):
-    def __init__(self, client):
-        self.client = client
+    keys = []
 
-    def req(self, action, data):
-        return self.client.req(type(self), action, data)
+    def __init__(self, client, **kwargs):
+        self.client = client
+        for key in self.keys:
+            setattr(self, key, kwargs[key])
+
+    @classmethod
+    def req(cls, client, action, data, parent=None):
+        if action == 'create':
+            kwargs = {'method': 'POST', 'body': json.dumps(data)}
+            url_tail = '/%ss' % (cls.url_part)
+        elif action == 'get':
+            kwargs = {'method': 'GET'}
+            url_tail = '/%ss/%s' % (cls.url_part, data)
+        elif action == 'delete':
+            kwargs = {'method': 'DELETE'}
+            url_tail = '/%ss/%s' % (cls.url_part, data)
+
+        if parent is not None:
+            url_tail = parent.instance_url_tail() + url_tail
+
+        return client.send_req(url_tail, **kwargs)
+
+    def instance_url_tail(self):
+        return '/%ss/%s' % (self.url_part, self.id)
+
+    @classmethod
+    def delete(cls, client, id):
+        return cls.req(client, 'delete', id)
+
+    @classmethod
+    def get(cls, client, id):
+        return cls.json_deserialise(client, cls.req(client, 'get', id))
+
+    def __repr__(self):
+        return ('<%s object%s>' %
+                (self.__class__.__name__,
+                 ''.join([', %s=%r' %
+                         (key, getattr(self, key)) for key in self.keys])))
 
 
 class User(APIObject):
     url_part = 'user'
+    keys = ['id', 'key', 'admin']
 
-    def __init__(self, client, obj_data=None):
-        self.client = client
-        obj_data = json.loads(obj_data)
-        self.user_id = obj_data['id']
-        self.key = obj_data['key']
-        self.admin = obj_data['admin']
+    @classmethod
+    def json_deserialise(cls, client, s):
+        d = json.loads(s)
+        return cls(client, id=d.get('id'),
+                           key=d.get('key'),
+                           admin=d.get('admin', False))
 
     @classmethod
     def new(cls, client, admin=False):
-        return cls(client, client.req(cls, 'create', {'admin': admin}))
+        return cls.json_deserialise(client,
+                                    cls.req(client,
+                                            'create',
+                                            {'admin': admin}))
 
-    def __repr__(self):
-        return ('<User object, user_id=%r, key=%r, admin=%r>' %
-                (self.user_id, self.key, self.admin))
+
+class Service(APIObject):
+    url_part = 'service'
+    keys = ['id', 'name', 'plugins']
+
+    @classmethod
+    def json_deserialise(cls, client, s):
+        d = json.loads(s)
+        return cls(client, id=d.get('id'),
+                           name=d.get('name'),
+                           plugins=d.get('plugins', []))
+
+    @classmethod
+    def new(cls, client, name, plugins=None):
+        return cls.json_deserialise(client,
+                                    cls.req(client, 'create',
+                                            {'name': name,
+                                             'plugins': plugins}))
+
+    def new_metric(self, *args, **kwargs):
+        return Metric.new(self.client, self, *args, **kwargs)
+
+
+class Metric(APIObject):
+    url_part = 'metric'
+    keys = ['id', 'service', 'timestamp', 'metrics']
+
+    @classmethod
+    def json_deserialise(cls, client, s):
+        d = json.loads(s)
+        return cls(client, id=d.get('id'),
+                           service=d.get('service'),
+                           timestamp=d.get('timestamp'),
+                           metrics=d.get('metrics'))
+
+    @classmethod
+    def new(cls, client, service, metrics):
+        return cls.json_deserialise(client,
+                                    cls.req(client, 'create',
+                                            {'metrics': metrics},
+                                             parent=service))

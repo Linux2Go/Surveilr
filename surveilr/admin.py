@@ -96,14 +96,63 @@ class CreateUser(Command):
         print '--user %s --api_key %s' % (user.user_id, user.key)
 
 
+class ShowUser(Command):
+    def __call__(self):
+        user = self.client.get_user(self.args[0])
+
+        print 'User:'
+        print 'ID:', user.user_id
+        print 'Admin:', user.admin
+
+
+class DeleteUser(Command):
+    def __call__(self):
+        self.client.delete_user(self.args[0])
+        print 'User deleted'
+
+
+class ShowService(Command):
+    def __call__(self):
+        service = self.client.get_service(self.args[0])
+
+        print 'Service:'
+        print 'ID:', service.id
+        print 'Name:', service.name
+        print 'Plugins:', service.plugins
+
+
+class DeleteService(Command):
+    def __call__(self):
+        self.client.delete_service(self.args[0])
+        print 'Service deleted'
+
+
+class CreateService(Command):
+    def get_optparser(self):
+        optparser = super(CreateService, self).get_optparser()
+        optparser.add_option('-p', action='append', dest='plugins',
+                             help='Make the new user an admin')
+        return optparser
+
+    def __call__(self):
+        service = self.client.new_service(self.args[0],
+                                          self.options.plugins)
+        print 'Service:'
+        print 'ID:', service.id
+
+
+def usage():
+    for cmd_name in commands:
+        cmd = commands[cmd_name]()
+        print cmd.optparser.get_usage().strip()
+
+
 def main(argv=None):
     if argv is None:  # pragma: nocover
         argv = sys.argv[1:]
 
     if not len(argv):
-        for cmd_name in commands:
-            cmd = commands[cmd_name]()
-            print cmd.optparser.get_usage().strip()
+        usage()
         return False
 
     if argv[0] in commands:
@@ -114,6 +163,9 @@ def main(argv=None):
         except surveilr.api.client.UnauthorizedError:
             print 'Action not permitted'
             return False
+    else:
+        usage()
+        return False
 
 
 if __name__ == '__main__':  # pragma: nocover
