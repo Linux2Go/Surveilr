@@ -126,24 +126,6 @@ class AdminToolTests(tests.TestCase):
 
         self.assertIsNone(auth)
 
-    def test_CreateUser_admin(self):
-        create_user = admin.CreateUser()
-
-        create_user.init(['--admin'])
-        create_user.client = mock.Mock()
-        create_user()
-
-        create_user.client.new_user.assert_called_with(admin=True)
-
-    def test_CreateUser_non_admin(self):
-        create_user = admin.CreateUser()
-
-        create_user.init([])
-        create_user.client = mock.Mock()
-        create_user()
-
-        create_user.client.new_user.assert_called_with(admin=False)
-
     def _replace_stdout_with_stringio(self):
         saved_stdout = sys.stdout
 
@@ -163,12 +145,23 @@ class AdminToolTests(tests.TestCase):
         self.assertEquals(sys.stdout.getvalue(),
                           'Action not permitted\n')
 
-    def test_cmd_list(self):
+    def test_cmd_list_if_no_command_given(self):
         self._replace_stdout_with_stringio()
         ret = admin.main([])
 
         self.assertEquals(ret, False)
         stdout = sys.stdout.getvalue()
+        self._check_cmd_list(stdout)
+
+    def test_cmd_list_if_invalid_command_given(self):
+        self._replace_stdout_with_stringio()
+        ret = admin.main(['this is not a valid command'])
+
+        self.assertEquals(ret, False)
+        stdout = sys.stdout.getvalue()
+        self._check_cmd_list(stdout)
+
+    def _check_cmd_list(self, stdout):
         self.assertEquals(len(stdout.split('\n')) - 1, len(admin.commands))
 
         expected_commands = set(admin.commands.keys())
@@ -180,3 +173,72 @@ class AdminToolTests(tests.TestCase):
             found_commands.add(cmd)
 
         self.assertEquals(expected_commands, found_commands)
+
+    def test_CreateUser_admin(self):
+        create_user = admin.CreateUser()
+
+        create_user.init(['--admin'])
+        create_user.client = mock.Mock()
+        create_user()
+
+        create_user.client.new_user.assert_called_with(admin=True)
+
+    def test_CreateUser_non_admin(self):
+        create_user = admin.CreateUser()
+
+        create_user.init([])
+        create_user.client = mock.Mock()
+        create_user()
+
+        create_user.client.new_user.assert_called_with(admin=False)
+
+    def test_CreateService_no_plugins(self):
+        create_service = admin.CreateService()
+
+        create_service.init(['servicename'])
+        create_service.client = mock.Mock()
+        create_service()
+
+        create_service.client.new_service.assert_called_with('servicename',
+                                                             None)
+
+    def test_CreateService_with_plugins(self):
+        create_service = admin.CreateService()
+
+        plugins = ['http://foo/bar', 'http://baz/wibble']
+
+        args = ['servicename']
+        for plugin in plugins:
+            args += ['-p', plugin]
+
+        create_service.init(args)
+        create_service.client = mock.Mock()
+        create_service()
+
+        create_service.client.new_service.assert_called_with('servicename',
+                                                             plugins)
+
+    def test_ShowUser(self):
+        self._test_Show_or_Delete('show', 'user')
+
+    def test_ShowService(self):
+        self._test_Show_or_Delete('show', 'service')
+
+    def test_DeleteUser(self):
+        self._test_Show_or_Delete('delete', 'user')
+
+    def test_DeleteService(self):
+        self._test_Show_or_Delete('delete', 'service')
+
+    def _test_Show_or_Delete(self, show_or_delete, type_name):
+        cmd = getattr(admin, '%s%s' % (show_or_delete.capitalize(),
+                                            type_name.capitalize()))()
+
+        cmd.init(['testid'])
+        cmd.client = mock.Mock()
+        cmd()
+
+        method_prefix = show_or_delete == 'show' and 'get' or 'delete'
+        method_name = '%s_%s' % (method_prefix, type_name)
+        method = getattr(cmd.client, method_name)
+        method.assert_called_with('testid')
