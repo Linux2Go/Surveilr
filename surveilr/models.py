@@ -36,7 +36,6 @@ class Service(RiakObject):
     searchable = True
 
     name = String()
-    most_recent_log_entry = RelatedObjects()
     user = RelatedObjects(backref=True)
     plugins = Dict()
 
@@ -66,9 +65,3 @@ class LogEntry(RiakObject):
     timestamp = Integer()
     metrics = Dict()
     service = RelatedObjects(backref=True)
-
-    def post_save(self):
-        super(LogEntry, self).post_save()
-        service = self.service[0]
-        service.most_recent_log_entry = [self]
-        service.save()
