@@ -20,20 +20,41 @@
     Tests for API server auth
 """
 
+import mock
+
 from surveilr import models
 from surveilr import tests
 from surveilr.api.server import auth
 
 
-class TestAPIServerAuth(tests.TestCase):
-    def test_AlwaysRequireAuth_unauthenticated(self):
-        decider = auth.AlwaysRequireAuth()
-        self.assertEquals(decider({}, '200 OK', {}), True)
+class TestRequireAuthMiddleware(tests.TestCase):
+    def _get_wrapped_app(self):
+        middleware = auth.require_auth_middleware_factory({})
+        app = mock.Mock()
+        return app, middleware(app)
 
-    def test_AlwaysRequireAuth_already_authenticated(self):
-        decider = auth.AlwaysRequireAuth()
-        self.assertEquals(decider({'repoze.who.identity': 'someone'},
-                                  '200 OK', {}), False)
+    def test_require_auth_middleware_authed(self):
+        app, wrapped_app = self._get_wrapped_app()
+        expected_response = mock.Sentinel()
+
+        app.return_value = expected_response
+        start_response = mock.Mock()
+        environ = {'repoze.who.identity': 'fake'}
+
+        actual_response = wrapped_app(environ, start_response)
+
+        app.assert_called_with(environ, start_response)
+        self.assertEquals(actual_response, expected_response)
+
+    def test_require_auth_middleware_not_authed(self):
+        app, wrapped_app = self._get_wrapped_app()
+        start_response = mock.Mock()
+        environ = {'REQUEST_METHOD': 'HEAD'}
+
+        wrapped_app(environ, start_response)
+
+        self.assertTrue(start_response.call_args[0][0].startswith('401 '))
+        self.assertEquals(app.call_args, None)
 
 
 class TestSurveilrAuthPlugin(tests.TestCase):
