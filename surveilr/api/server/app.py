@@ -52,9 +52,9 @@ def is_privileged(req):
 
 def privileged(f):
     @functools.wraps(f)
-    def wrapped(self, req, *args):
+    def wrapped(self, req, *args, **kwargs):
         if is_privileged(req):
-            return f(self, req, *args)
+            return f(self, req, *args, **kwargs)
         else:
             return HTTPForbidden()
     return wrapped
@@ -118,6 +118,7 @@ class UserController(Controller):
         user.save()
         return Response(self.json_serialise(user))
 
+    @privileged
     def show(self, req, id):
         """Called for GET requests to /users/{id}
 
@@ -128,10 +129,12 @@ class UserController(Controller):
         except riakalchemy.NoSuchObjectError:
             return HTTPNotFound()
 
+    @privileged
     def delete(self, req, id):
         """Called for DELETE requests to /users/{id}
 
         Delete the given user"""
+
         models.User.get(id).delete()
         return Response('')
 
@@ -157,6 +160,12 @@ class ServiceController(Controller):
         Creates the service, returns a JSON object with the ID assigned
         to the service"""
         data = json.loads(req.body)
+
+        data['user'] = [req.environ['surveilr.user']]
+
+        if 'plugins' not in data or not data['plugins']:
+            data['plugins'] = []
+
         service = models.Service(**data)
         service.save()
         return Response(self.json_serialise(service))
@@ -201,6 +210,7 @@ class MetricController(Controller):
 
         Logs a measurement against the service identified by {id}.
         Returns an empty response"""
+
         data = json.loads(req.body)
         service = models.Service.get(service_name)
         data['service'] = [service]
@@ -247,6 +257,7 @@ class SurveilrApplication(object):
 
         Using the Mapper object, it finds the relevant controller
         based on the URL and delegates the call to that."""
+
         results = self.map.routematch(environ=req.environ)
         if not results:
             return exc.HTTPNotFound()

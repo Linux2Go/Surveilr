@@ -104,9 +104,11 @@ class APIServerTests(tests.TestCase):
 
     def test_create_retrieve_service(self):
         """Create, retrieve, delete, attempt to retrieve again (service)"""
+        user = self._get_user()
         req = Request.blank('/services',
                             method='POST',
-                            POST=json.dumps({'name': 'this_or_the_other'}))
+                            POST=json.dumps({'name': 'this_or_the_other'}),
+                            environ={'surveilr.user': user})
         resp = self.application(req)
         self.assertEquals(resp.status_int, 200)
 
@@ -124,11 +126,19 @@ class APIServerTests(tests.TestCase):
         resp = self.application(req)
         self.assertEquals(resp.status_int, 404)
 
+    def _get_user(self):
+        user = models.User()
+        user.save()
+        self.addCleanup(user.delete)
+        return user
+
     def test_add_remove_plugin_to_service(self):
+        user = self._get_user()
         url = 'http://foo.bar/'
         req = Request.blank('/services',
                             method='POST',
-                            POST=json.dumps({'name': 'this_or_the_other'}))
+                            POST=json.dumps({'name': 'this_or_the_other'}),
+                            environ={'surveilr.user': user})
         resp = self.application(req)
         self.assertEquals(resp.status_int, 200)
 
@@ -158,9 +168,11 @@ class APIServerTests(tests.TestCase):
         self.assertEquals(plugins, [])
 
     def test_create_retrieve_metric(self):
+        user = self._get_user()
         req = Request.blank('/services',
                             method='POST',
-                            POST='{"name": "this_or_the_other"}')
+                            POST='{"name": "this_or_the_other"}',
+                            environ={'surveilr.user': user})
         resp = self.application(req)
         self.assertEquals(resp.status_int, 200)
 
