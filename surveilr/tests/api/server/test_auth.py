@@ -35,7 +35,7 @@ class TestRequireAuthMiddleware(tests.TestCase):
 
     def test_require_auth_middleware_authed(self):
         app, wrapped_app = self._get_wrapped_app()
-        expected_response = mock.Sentinel()
+        expected_response = mock.sentinel.response
 
         app.return_value = expected_response
         start_response = mock.Mock()
