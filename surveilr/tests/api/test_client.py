@@ -92,7 +92,7 @@ class SurveilrClientTests(tests.TestCase):
 
         parent = FakeObjType(api_client)
         parent.id = 7
-        with mock.patch_object(api_client, 'send_req') as send_req:
+        with mock.patch.object(api_client, 'send_req') as send_req:
             FakeObjType(api_client).req(api_client, 'create', test_data,
                                         parent=parent)
             self.assertEquals(send_req.call_args[0][0], '/stuffs/7/stuffs')
@@ -108,7 +108,7 @@ class SurveilrClientTests(tests.TestCase):
         class FakeObjType(client.APIObject):
             url_part = 'stuff'
 
-        with mock.patch_object(api_client, 'send_req') as send_req:
+        with mock.patch.object(api_client, 'send_req') as send_req:
             FakeObjType(api_client).req(api_client, 'create', test_data)
             self.assertEquals(send_req.call_args[0][0], '/stuffs')
             self.assertEquals(send_req.call_args[1]['method'], 'POST')
@@ -121,7 +121,7 @@ class SurveilrClientTests(tests.TestCase):
         class FakeObjType(client.APIObject):
             url_part = 'stuff'
 
-        with mock.patch_object(api_client, 'send_req') as send_req:
+        with mock.patch.object(api_client, 'send_req') as send_req:
             FakeObjType(api_client).req(api_client, 'get', 'someid')
             self.assertEquals(send_req.call_args[0][0], '/stuffs/someid')
             self.assertEquals(send_req.call_args[1]['method'], 'GET')
@@ -132,7 +132,7 @@ class SurveilrClientTests(tests.TestCase):
         class FakeObjType(client.APIObject):
             url_part = 'stuff'
 
-        with mock.patch_object(api_client, 'send_req') as send_req:
+        with mock.patch.object(api_client, 'send_req') as send_req:
             FakeObjType(api_client).req(api_client, 'delete', 'someid')
             self.assertEquals(send_req.call_args[0][0], '/stuffs/someid')
             self.assertEquals(send_req.call_args[1]['method'], 'DELETE')
@@ -141,7 +141,7 @@ class SurveilrClientTests(tests.TestCase):
 class APIObjectTests(tests.TestCase):
     def _test_req(self):
         client_obj = mock.Mock()
-        data = mock.Sentinel()
+        data = mock.sentinel.data
 
         class TestObject(client.APIObject):
             url_part = 'test'
@@ -179,7 +179,7 @@ class UserTests(tests.TestCase):
     def _test_new(self, admin):
         # Setup
         client_obj = mock.Mock()
-        with mock.patch_object(client.User, 'req') as client_req:
+        with mock.patch.object(client.User, 'req') as client_req:
             client_req.return_value = json.dumps({'id': 'testid',
                                                   'key': 'testkey',
                                                   'admin': admin})
@@ -210,7 +210,7 @@ class ServiceTests(tests.TestCase):
         # Setup
         test_plugins = ['http://h:1/p']
         client_obj = mock.Mock()
-        with mock.patch_object(client.Service, 'req') as service_req:
+        with mock.patch.object(client.Service, 'req') as service_req:
             service_req.return_value = json.dumps({'id': 'testid',
                                                   'name': 'testname',
                                                   'plugins': test_plugins})
@@ -239,7 +239,7 @@ class MetricTests(tests.TestCase):
         service_obj = client.Service(client_obj, id='testid',
                                      name='testname', plugins=[])
 
-        with mock.patch_object(client, 'Metric') as Metric:
+        with mock.patch.object(client, 'Metric') as Metric:
             service_obj.new_metric({'foo': 1234})
 
             Metric.new.assert_called_with(client_obj, service_obj,
@@ -249,8 +249,8 @@ class MetricTests(tests.TestCase):
     def test_new(self):
         # Setup
         client_obj = mock.Mock()
-        service_obj = mock.Sentinel()
-        with mock.patch_object(client.Metric, 'req') as metric_req:
+        service_obj = mock.sentinel.service_obj
+        with mock.patch.object(client.Metric, 'req') as metric_req:
             metric_req.return_value = json.dumps({})
 
             # Exercise
@@ -274,7 +274,7 @@ class DirectClientTests(tests.TestCase):
         from webob import Request
 
         api_client = client.SurveilrDirectClient({})
-        with mock.patch_object(api_client, 'app') as app:
+        with mock.patch.object(api_client, 'app') as app:
             response = mock.Mock()
             response.body = 'response'
             app.return_value = response
