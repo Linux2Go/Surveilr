@@ -4,8 +4,8 @@ Starting with an Ubuntu Oneiric box, install Riak:
 
 ## Riak setup ##
 
->     wget http://downloads.basho.com/riak/CURRENT/riak_1.0.2-1_ubuntu_11_amd64.deb
->     sudo dpkg -i riak_1.0.2-1_ubuntu_11_amd64.deb
+>     wget http://downloads.basho.com/riak/CURRENT/riak_1.1.1-1_amd64.deb
+>     sudo dpkg -i riak_1.1.1-1_amd64.deb
 
 You need to make a few changes to Riak's app.config.
 
